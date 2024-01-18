@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { MdOutlineHome, MdOutlineMarkunreadMailbox } from "react-icons/md";
+import HeaderLink from "@/components/headerLink";
+import NavigationButton from "@/components/navigationButton";
 
 export default function RootLayout({
   children,
@@ -10,26 +12,16 @@ export default function RootLayout({
     <>
       <header className="px-4 py-4 flex fixed z-10 top-0 left-0 w-full backdrop-blur">
         <h1 className="font-bold">NosHagaki</h1>
-        <Link href={"#"} className="ml-auto text-neutral-500">
-          ヘルプ
-        </Link>
+        <HeaderLink href="#">ヘルプ</HeaderLink>
       </header>
       <main className="px-4 py-24 min-h-screen">
         <div className="fixed z-10 inset-0 top-24 left-4 w-12 lg:w-64 space-y-4">
-          <Link
-            href={"/home"}
-            className="w-12 lg:w-56 h-12 flex rounded-lg hover:bg-neutral-200"
-          >
+          <NavigationButton href="/home" title="ホーム">
             <MdOutlineHome className="h-10 w-10 ml-1 my-auto" />
-            <p className="text-2xl my-auto ml-2 hidden lg:block">ホーム</p>
-          </Link>
-          <Link
-            href={"/mailbox"}
-            className="w-12 lg:w-56 h-12 flex rounded-lg hover:bg-neutral-200"
-          >
+          </NavigationButton>
+          <NavigationButton href="/mailbox" title="郵便受け">
             <MdOutlineMarkunreadMailbox className="h-10 w-10 ml-1 my-auto" />
-            <p className="text-2xl my-auto ml-2 hidden lg:block">郵便受け</p>
-          </Link>
+          </NavigationButton>
           <Link
             href={"/draft"}
             className="w-12 lg:w-64 h-12 flex rounded-3xl border-2 border-neutral-200 hover:bg-neutral-200"
