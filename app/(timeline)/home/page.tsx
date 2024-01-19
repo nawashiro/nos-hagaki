@@ -1,4 +1,5 @@
 import DivCard from "@/components/divCard";
+import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
 
 export default function Home() {
@@ -13,12 +14,10 @@ export default function Home() {
           べっ、別にあんたのためじゃないんだからねっ！
         </p>
         <div className="flex space-x-4">
-          <button className="px-4 py-2 border-2 border-neutral-200 rounded-[2rem] hover:bg-neutral-200">
-            わかった
-          </button>
+          <SimpleButton>わかった</SimpleButton>
           <Link
             href={"#"}
-            className="px-4 py-2 border-2 border-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+            className="px-4 py-2 text-neutral-500 border-2 border-neutral-200 rounded-[2rem] hover:bg-neutral-200"
           >
             ヘルプを見る
           </Link>

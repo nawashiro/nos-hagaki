@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@nostr-dev-kit/ndk": "^2.3.3",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",

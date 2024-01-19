@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { MdOutlineHome, MdOutlineMarkunreadMailbox } from "react-icons/md";
+import {
+  MdOutlineHome,
+  MdOutlineMarkunreadMailbox,
+  MdOutlineSettings,
+} from "react-icons/md";
 import HeaderLink from "@/components/headerLink";
-import NavigationButton from "@/components/navigationButton";
+import NavigationLink from "@/components/navigationLink";
 
 export default function RootLayout({
   children,
@@ -16,14 +20,17 @@ export default function RootLayout({
       </header>
       <main className="px-4 py-24 min-h-screen">
         <div className="fixed z-10 inset-0 top-24 left-4 w-12 lg:w-64 space-y-4">
-          <NavigationButton href="/home" title="ホーム">
+          <NavigationLink href="/home" title="ホーム">
             <MdOutlineHome className="h-10 w-10 ml-1 my-auto" />
-          </NavigationButton>
-          <NavigationButton href="/mailbox" title="郵便受け">
+          </NavigationLink>
+          <NavigationLink href="/mailbox" title="郵便受け">
             <MdOutlineMarkunreadMailbox className="h-10 w-10 ml-1 my-auto" />
-          </NavigationButton>
+          </NavigationLink>
+          <NavigationLink href="/setting" title="設定">
+            <MdOutlineSettings className="h-10 w-10 ml-1 my-auto" />
+          </NavigationLink>
           <Link
-            href={"/draft"}
+            href={"/postoffice/draft"}
             className="w-12 lg:w-64 h-12 flex rounded-3xl border-2 border-neutral-200 hover:bg-neutral-200"
           >
             <p className="text-2xl m-auto text-neutral-500 hidden lg:block">
@@ -31,7 +38,7 @@ export default function RootLayout({
             </p>
           </Link>
         </div>
-        <div className="max-w-xl space-y-4 ml-16 md:mx-auto">{children}</div>
+        <div className="max-w-xl ml-16 md:mx-auto">{children}</div>
       </main>
     </>
   );
