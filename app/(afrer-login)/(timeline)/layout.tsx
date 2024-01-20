@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <>
-      <header className="px-4 py-4 flex fixed z-10 top-0 left-0 w-full backdrop-blur">
+      <header className="p-4 flex fixed z-10 top-0 left-0 w-full backdrop-blur">
         <h1 className="font-bold">NosHagaki</h1>
         <HeaderLink href="#">ヘルプ</HeaderLink>
       </header>

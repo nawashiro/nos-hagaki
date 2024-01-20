@@ -1,13 +1,17 @@
+"use client";
 import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
+import React from "react";
 
 export default function Home() {
   return (
     <>
       <DivCard>
         <p>
-          あんたがユーザー？初めましてかもしれないわね。このアプリはWeb用のNostrクライアントよ！はがきを送りあうような操作感を目指しているの。
+          おかえりなさい。あっ、いえ、は、初めましてかもしれないわね。
+          <br />
+          このアプリはWeb用のNostrクライアントよ。はがきを送りあうような操作感を目指しているの。
           <br />
           使い方はヘルプにまとめてあるし、右上からいつでも呼び出せるわ。
           <br />

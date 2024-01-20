@@ -1,7 +1,9 @@
+import { ButtonHTMLAttributes } from "react";
+
 export default function SimpleButton({
   children,
   ...props
-}: {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
   children: React.ReactNode;
 }) {
   return (
