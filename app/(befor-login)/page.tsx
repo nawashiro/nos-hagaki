@@ -32,6 +32,8 @@ export default function Home() {
         手間がかかるし、時間がかかるし、一人語りもできません。
         <br />
         ただ、はがきのような操作感を目指しています。
+        <br />
+        あとツンデレ。
       </p>
       <SimpleButton onClick={login}>NIP-7拡張機能でログイン</SimpleButton>
     </div>
