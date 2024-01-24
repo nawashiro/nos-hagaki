@@ -1,6 +1,6 @@
 "use client";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import React from "react";
 
 export default function RootLayout({
   children,
@@ -8,7 +8,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  useEffect(() => {
+  React.useEffect(() => {
     if (!localStorage.getItem("login")) {
       router.push("/");
     }
