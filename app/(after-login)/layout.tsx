@@ -12,14 +12,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const nip07signer = new NDKNip07Signer();
 
-  nip07signer.user().then(async (user) => {
-    if (localStorage.getItem("login") != user.npub) {
-      localStorage.clear();
-      router.push("/");
-    }
-  });
+  if (!localStorage.getItem("login")) {
+    router.push("/");
+  }
 
   const ndk = useContext(NDKContext);
   ndk.explicitRelayUrls = [
