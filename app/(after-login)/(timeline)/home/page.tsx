@@ -2,12 +2,15 @@
 import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useContext, useState } from "react";
+import { NDKContext } from "../../layout";
 
 export default function Home() {
   const [messageReaded, setMessageReaded] = useState(
     localStorage.getItem("messageReaded") == "true"
   );
+  const ndk = useContext(NDKContext);
+
   return (
     <>
       {!messageReaded ? (
