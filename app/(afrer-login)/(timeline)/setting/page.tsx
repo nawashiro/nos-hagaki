@@ -13,9 +13,7 @@ export default function Setting() {
       <div className="space-y-4">
         <h2 className="font-bold">ログアウト</h2>
         <p>
-          ローカルに保存されたデータを削除してログアウトするわ。
-          <br />
-          下書きも削除されるから気をつけなさい！
+          ローカルに保存された下書きは削除されるから気をつけなさい！
           <br />
           まっ、また来なさいよね！…待ってるから。
         </p>
