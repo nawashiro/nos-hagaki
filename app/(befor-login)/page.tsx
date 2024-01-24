@@ -7,6 +7,10 @@ import SimpleButton from "@/components/simpleButton";
 export default function Home() {
   const router = useRouter();
 
+  if (localStorage.getItem("login")) {
+    router.push("/home");
+  }
+
   const login = () => {
     const nip07signer = new NDKNip07Signer();
     nip07signer.user().then(async (user) => {
@@ -16,12 +20,6 @@ export default function Home() {
       }
     });
   };
-
-  React.useEffect(() => {
-    if (localStorage.getItem("login")) {
-      router.push("/home");
-    }
-  });
 
   return (
     <div className="space-y-4">

@@ -1,12 +1,3 @@
-import Link from "next/link";
-import {
-  MdOutlineHome,
-  MdOutlineMarkunreadMailbox,
-  MdOutlineSettings,
-} from "react-icons/md";
-import HeaderLink from "@/components/headerLink";
-import NavigationLink from "@/components/navigationLink";
-
 export default function RootLayout({
   children,
 }: {
