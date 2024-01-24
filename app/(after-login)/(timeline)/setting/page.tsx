@@ -1,6 +1,5 @@
 "use client";
 import SimpleButton from "@/components/simpleButton";
-import { useRouter } from "next/navigation";
 
 export default function Setting() {
   const logout = () => {
