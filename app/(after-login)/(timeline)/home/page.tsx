@@ -20,7 +20,7 @@ export default function Home() {
   const ndk = useContext(NDKContext);
 
   const GetEvent = (filter: NDKFilter) => {
-    const sub = ndk.subscribe(filter);
+    const sub = ndk.subscribe(filter, { closeOnEose: true });
     sub.on("event", (event: NDKEvent) => {
       if (
         !timelineEventList.eventList.find(
