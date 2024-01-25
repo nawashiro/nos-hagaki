@@ -16,6 +16,7 @@ export default function Home() {
   const [timeline, setTimeline] = useState<NDKEvent[]>([
     ...timelineEventList.eventList,
   ]);
+  const [pubkey, setPubkey] = useState<string>("");
   const ndk = useContext(NDKContext);
 
   const GetEvent = (filter: NDKFilter) => {
@@ -26,6 +27,11 @@ export default function Home() {
           (element: NDKEvent) => element.id == event.id
         )
       ) {
+        const created_at = event.created_at || 0;
+        if (timelineEventList.until > created_at) {
+          timelineEventList.until = created_at;
+        }
+
         timelineEventList.push(event);
         setTimeline(timelineEventList.eventList);
       }
@@ -51,9 +57,20 @@ export default function Home() {
         };
         GetEvent(myKind1Filter);
       }
+      setPubkey(user.pubkey);
     };
     fetchdata();
   }, []);
+
+  const getMoreEvent = () => {
+    const myKind1Filter: NDKFilter = {
+      kinds: [1],
+      authors: [pubkey],
+      limit: 10,
+      until: timelineEventList.until,
+    };
+    GetEvent(myKind1Filter);
+  };
 
   return (
     <div className="space-y-8">
@@ -99,6 +116,12 @@ export default function Home() {
             <EventCard event={event} key={index} />
           ))}
       </div>
+      <SimpleButton
+        className="block mx-auto px-4 py-2 text-neutral-500 border-2 border-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+        onClick={getMoreEvent}
+      >
+        さらに読み込む
+      </SimpleButton>
     </div>
   );
 }

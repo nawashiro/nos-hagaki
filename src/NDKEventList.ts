@@ -16,4 +16,12 @@ export class NDKEventList {
   get eventList(): NDKEvent[] {
     return this._eventList;
   }
+
+  get until(): number {
+    return this._until;
+  }
+
+  set until(until: number) {
+    this._until = until;
+  }
 }
