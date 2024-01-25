@@ -13,7 +13,7 @@ export default function Home() {
 
   const login = () => {
     const nip07signer = new NDKNip07Signer();
-    nip07signer.user().then(async (user) => {
+    nip07signer.user().then((user) => {
       if (!!user.npub) {
         localStorage.setItem("login", user.npub);
         router.push("/home");

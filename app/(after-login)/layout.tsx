@@ -1,10 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useContext, createContext } from "react";
+import { createContext } from "react";
 import { NDKSingleton } from "@/src/NDKSingleton";
-import { NDKNip07Signer } from "@nostr-dev-kit/ndk";
+import { NDKEventList } from "@/src/NDKEventList";
 
 export const NDKContext = createContext(NDKSingleton.instance);
+export const HomeTimelineEventList = createContext(new NDKEventList([]));
 
 export default function RootLayout({
   children,
@@ -16,17 +17,6 @@ export default function RootLayout({
   if (!localStorage.getItem("login")) {
     router.push("/");
   }
-
-  const ndk = useContext(NDKContext);
-  ndk.explicitRelayUrls = [
-    "wss://nos.lol",
-    "wss://relay.damus.io",
-    "wss://relay-jp.nostr.wirednet.jp",
-    "wss://nostr-relay.nokotaro.com",
-    "wss://nostr.holybea.com",
-    "wss://nostr.fediverse.jp",
-    "wss://yabu.me",
-  ];
 
   return <>{children}</>;
 }
