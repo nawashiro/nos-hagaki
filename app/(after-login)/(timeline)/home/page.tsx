@@ -22,7 +22,7 @@ export default function Home() {
 
   useEffect(() => {
     setMessageReaded(localStorage.getItem("messageReaded") == "true");
-  });
+  }, []);
 
   const getEvent = (filter: NDKFilter) => {
     const sub = ndk.subscribe(filter, { closeOnEose: true });
