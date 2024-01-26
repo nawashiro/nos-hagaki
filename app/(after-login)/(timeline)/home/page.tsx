@@ -4,7 +4,7 @@ import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "../../layout";
-import { GetExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
+import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import EventCard from "@/components/EventCard";
 import { NDKEventList } from "@/src/NDKEventList";
@@ -49,7 +49,7 @@ export default function Home() {
         throw new Error("pubkey is false");
       }
 
-      await GetExplicitRelayUrls(ndk, user);
+      await getExplicitRelayUrls(ndk, user);
 
       if (timeline.length <= 10) {
         const myKind1Filter: NDKFilter = {

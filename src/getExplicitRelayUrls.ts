@@ -1,7 +1,7 @@
-import { NDKFilter, NDKUser } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKFilter, NDKUser } from "@nostr-dev-kit/ndk";
 import { NDKSingleton } from "./NDKSingleton";
 
-export const GetExplicitRelayUrls = async (
+export const getExplicitRelayUrls = async (
   ndk: NDKSingleton,
   user: NDKUser
 ) => {
@@ -21,14 +21,18 @@ export const GetExplicitRelayUrls = async (
       authors: [user.pubkey],
     };
 
-    const explicitRelayUrlsEvent: any = await ndk.fetchEvent(
+    const explicitRelayUrlsEvent: NDKEvent | null = await ndk.fetchEvent(
       explicitRelayUrlsFilter
     );
 
-    const explicitRelayUrls = [];
+    if (!explicitRelayUrlsEvent) {
+      throw "kind 10002 is not found.";
+    }
+
+    let explicitRelayUrls: string[] = [];
     for (const value of explicitRelayUrlsEvent.tags) {
       if (value[0] == "r") {
-        explicitRelayUrls.push(value[1]);
+        explicitRelayUrls = [...explicitRelayUrls, value[1]];
       }
     }
     ndk.explicitRelayUrls = explicitRelayUrls;
