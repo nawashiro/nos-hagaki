@@ -3,16 +3,18 @@ import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
-import { HomeTimelineEventList, NDKContext } from "../../layout";
+import { NDKContext } from "../../layout";
 import { GetExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import EventCard from "@/components/EventCard";
+import { NDKEventList } from "@/src/NDKEventList";
+
+const timelineEventList = new NDKEventList([]);
 
 export default function Home() {
   const [messageReaded, setMessageReaded] = useState(
     localStorage.getItem("messageReaded") == "true"
   );
-  const timelineEventList = useContext(HomeTimelineEventList);
   const [timeline, setTimeline] = useState<NDKEvent[]>([
     ...timelineEventList.eventList,
   ]);

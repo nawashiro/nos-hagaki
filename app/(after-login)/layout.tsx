@@ -2,10 +2,8 @@
 import { useRouter } from "next/navigation";
 import { createContext } from "react";
 import { NDKSingleton } from "@/src/NDKSingleton";
-import { NDKEventList } from "@/src/NDKEventList";
 
 export const NDKContext = createContext(NDKSingleton.instance);
-export const HomeTimelineEventList = createContext(new NDKEventList([]));
 
 export default function RootLayout({
   children,
