@@ -6,9 +6,9 @@ import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "../../layout";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
-import EventCard from "@/components/EventCard";
 import { NDKEventList } from "@/src/NDKEventList";
 import MoreLoadButton from "@/components/MoreLoadButton";
+import Timeline from "@/components/Timeline";
 
 const timelineEventList = new NDKEventList([]);
 
@@ -108,17 +108,7 @@ export default function Home() {
       ) : (
         <></>
       )}
-      <div className="space-y-4">
-        {timeline
-          .sort((a, b) => {
-            const dateA = a.created_at || 0;
-            const dateB = b.created_at || 0;
-            return dateB - dateA;
-          })
-          .map((event, index) => (
-            <EventCard event={event} key={index} />
-          ))}
-      </div>
+      <Timeline timeline={timeline} />
       <MoreLoadButton onClick={getMoreEvent} />
     </div>
   );
