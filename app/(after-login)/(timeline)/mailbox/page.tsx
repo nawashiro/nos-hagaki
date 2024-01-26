@@ -1,7 +1,5 @@
 "use client";
-import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
-import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "../../layout";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
