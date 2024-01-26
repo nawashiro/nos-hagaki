@@ -31,9 +31,11 @@ export default function Home() {
         <br />
         距離が開いていて時間が掛かる、「はがきのやり取り」のようなものを目指しています。
         <br />
-        Nostr上の友達とはがきを送りあってみましょう。
+        Nostr上の友達とはがきを送りあってみませんか？
       </p>
-      <SimpleButton onClick={login}>NIP-7拡張機能でログイン</SimpleButton>
+      <SimpleButton onClick={login}>
+        NIP-07ブラウザ拡張機能でログイン
+      </SimpleButton>
     </div>
   );
 }
