@@ -10,7 +10,14 @@ export class NDKEventList {
   }
 
   public push(event: NDKEvent) {
-    this._eventList = [...this._eventList, event];
+    if (!this._eventList.find((element: NDKEvent) => element.id == event.id)) {
+      const created_at = event.created_at || 0;
+      if (this._until > created_at) {
+        this._until = created_at;
+      }
+
+      this._eventList = [...this._eventList, event];
+    }
   }
 
   get eventList(): NDKEvent[] {
