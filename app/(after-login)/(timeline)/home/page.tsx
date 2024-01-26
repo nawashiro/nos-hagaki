@@ -8,6 +8,7 @@ import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import EventCard from "@/components/EventCard";
 import { NDKEventList } from "@/src/NDKEventList";
+import MoreLoadButton from "@/components/MoreLoadButton";
 
 const timelineEventList = new NDKEventList([]);
 
@@ -118,12 +119,7 @@ export default function Home() {
             <EventCard event={event} key={index} />
           ))}
       </div>
-      <SimpleButton
-        className="block mx-auto px-4 py-2 text-neutral-500 border-2 border-neutral-200 rounded-[2rem] hover:bg-neutral-200"
-        onClick={getMoreEvent}
-      >
-        さらに読み込む
-      </SimpleButton>
+      <MoreLoadButton onClick={getMoreEvent} />
     </div>
   );
 }

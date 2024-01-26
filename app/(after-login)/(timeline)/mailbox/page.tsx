@@ -1,5 +1,4 @@
 "use client";
-import SimpleButton from "@/components/simpleButton";
 import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "../../layout";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
@@ -7,6 +6,7 @@ import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import EventCard from "@/components/EventCard";
 import { NDKEventList } from "@/src/NDKEventList";
 import { getFollows } from "@/src/getFollows";
+import MoreLoadButton from "@/components/MoreLoadButton";
 
 const timelineEventList = new NDKEventList([]);
 let followsList: string[] = [];
@@ -89,12 +89,7 @@ export default function Mailbox() {
             <EventCard event={event} key={index} />
           ))}
       </div>
-      <SimpleButton
-        className="block mx-auto px-4 py-2 text-neutral-500 border-2 border-neutral-200 rounded-[2rem] hover:bg-neutral-200"
-        onClick={getMoreEvent}
-      >
-        さらに読み込む
-      </SimpleButton>
+      <MoreLoadButton onClick={getMoreEvent} />
     </div>
   );
 }
