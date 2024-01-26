@@ -22,7 +22,7 @@ export default function Home() {
   const [pubkey, setPubkey] = useState<string>("");
   const ndk = useContext(NDKContext);
 
-  const GetEvent = (filter: NDKFilter) => {
+  const getEvent = (filter: NDKFilter) => {
     const sub = ndk.subscribe(filter, { closeOnEose: true });
     sub.on("event", (event: NDKEvent) => {
       if (
@@ -58,7 +58,7 @@ export default function Home() {
           authors: [user.pubkey],
           limit: 10,
         };
-        GetEvent(myKind1Filter);
+        getEvent(myKind1Filter);
       }
       setPubkey(user.pubkey);
     };
@@ -72,7 +72,7 @@ export default function Home() {
       limit: 10,
       until: timelineEventList.until,
     };
-    GetEvent(myKind1Filter);
+    getEvent(myKind1Filter);
   };
 
   return (

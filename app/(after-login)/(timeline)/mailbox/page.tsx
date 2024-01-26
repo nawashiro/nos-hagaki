@@ -18,7 +18,7 @@ export default function Mailbox() {
   const [follows, setFollows] = useState<string[]>(followsList);
   const ndk = useContext(NDKContext);
 
-  const GetEvent = (filter: NDKFilter) => {
+  const getEvent = (filter: NDKFilter) => {
     const sub = ndk.subscribe(filter, { closeOnEose: true });
     sub.on("event", (event: NDKEvent) => {
       if (
@@ -58,7 +58,7 @@ export default function Mailbox() {
           authors: followsList,
           limit: 10,
         };
-        GetEvent(myKind1Filter);
+        getEvent(myKind1Filter);
       }
 
       setFollows(followsList);
@@ -73,7 +73,7 @@ export default function Mailbox() {
       limit: 10,
       until: timelineEventList.until,
     };
-    GetEvent(myKind1Filter);
+    getEvent(myKind1Filter);
   };
 
   return (
