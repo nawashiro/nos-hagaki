@@ -1,6 +1,6 @@
 "use client";
 import { useContext, useEffect, useState } from "react";
-import { NDKContext } from "../../layout";
+import { NDKContext } from "@/src/NDKContext";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import { NDKEventList } from "@/src/NDKEventList";

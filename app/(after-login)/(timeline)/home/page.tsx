@@ -3,7 +3,7 @@ import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
-import { NDKContext } from "../../layout";
+import { NDKContext } from "@/src/NDKContext";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import { NDKEventList } from "@/src/NDKEventList";
@@ -13,14 +13,16 @@ import Timeline from "@/components/Timeline";
 const timelineEventList = new NDKEventList([]);
 
 export default function Home() {
-  const [messageReaded, setMessageReaded] = useState(
-    localStorage.getItem("messageReaded") == "true"
-  );
+  const [messageReaded, setMessageReaded] = useState<boolean>(true);
   const [timeline, setTimeline] = useState<NDKEvent[]>([
     ...timelineEventList.eventList,
   ]);
   const [pubkey, setPubkey] = useState<string>("");
   const ndk = useContext(NDKContext);
+
+  useEffect(() => {
+    setMessageReaded(localStorage.getItem("messageReaded") == "true");
+  });
 
   const getEvent = (filter: NDKFilter) => {
     const sub = ndk.subscribe(filter, { closeOnEose: true });

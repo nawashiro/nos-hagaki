@@ -1,9 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { createContext } from "react";
-import { NDKSingleton } from "@/src/NDKSingleton";
-
-export const NDKContext = createContext(NDKSingleton.instance);
+import { useEffect } from "react";
 
 export default function RootLayout({
   children,
@@ -12,9 +9,11 @@ export default function RootLayout({
 }) {
   const router = useRouter();
 
-  if (!localStorage.getItem("login")) {
-    router.push("/");
-  }
+  useEffect(() => {
+    if (!localStorage.getItem("login")) {
+      router.push("/");
+    }
+  }, []);
 
   return <>{children}</>;
 }

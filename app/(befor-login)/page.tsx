@@ -1,15 +1,17 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import { NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import SimpleButton from "@/components/simpleButton";
 
 export default function Home() {
   const router = useRouter();
 
-  if (localStorage.getItem("login")) {
-    router.push("/home");
-  }
+  useEffect(() => {
+    if (localStorage.getItem("login")) {
+      router.push("/home");
+    }
+  }, []);
 
   const login = () => {
     const nip07signer = new NDKNip07Signer();
