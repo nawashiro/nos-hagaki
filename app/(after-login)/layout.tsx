@@ -1,9 +1,5 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { createContext } from "react";
-import { NDKSingleton } from "@/src/NDKSingleton";
-
-export const NDKContext = createContext(NDKSingleton.instance);
 
 export default function RootLayout({
   children,
