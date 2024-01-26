@@ -9,14 +9,18 @@ export class NDKEventList {
     this._until = Math.trunc(new Date().getTime() / 1000);
   }
 
-  public push(event: NDKEvent) {
-    if (!this._eventList.find((element: NDKEvent) => element.id == event.id)) {
-      const created_at = event.created_at || 0;
-      if (this._until > created_at) {
-        this._until = created_at;
-      }
+  public concat(eventList: Set<NDKEvent>) {
+    for (const event of Array.from(eventList)) {
+      if (
+        !this._eventList.find((element: NDKEvent) => element.id == event.id)
+      ) {
+        const created_at = event.created_at || 0;
+        if (this._until > created_at) {
+          this._until = created_at;
+        }
 
-      this._eventList = [...this._eventList, event];
+        this._eventList = [...this._eventList, event];
+      }
     }
   }
 

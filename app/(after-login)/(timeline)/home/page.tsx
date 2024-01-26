@@ -24,12 +24,9 @@ export default function Home() {
     setMessageReaded(localStorage.getItem("messageReaded") == "true");
   }, []);
 
-  const getEvent = (filter: NDKFilter) => {
-    const sub = ndk.subscribe(filter, { closeOnEose: true });
-    sub.on("event", (event: NDKEvent) => {
-      timelineEventList.push(event);
-      setTimeline(timelineEventList.eventList);
-    });
+  const getEvent = async (filter: NDKFilter) => {
+    timelineEventList.concat(await ndk.fetchEvents(filter));
+    setTimeline(timelineEventList.eventList);
   };
 
   useEffect(() => {
