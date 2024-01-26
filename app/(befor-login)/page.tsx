@@ -29,11 +29,9 @@ export default function Home() {
       <p>
         これはWEB用のNostrクライアントです。
         <br />
-        手間がかかるし、時間がかかるし、一人語りもできません。
+        距離が開いていて時間が掛かる、「はがきのやり取り」のようなものを目指しています。
         <br />
-        ただ、はがきのような操作感を目指しています。
-        <br />
-        あとツンデレ。
+        Nostr上の友達とはがきを送りあってみましょう。
       </p>
       <SimpleButton onClick={login}>NIP-7拡張機能でログイン</SimpleButton>
     </div>
