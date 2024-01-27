@@ -4,8 +4,8 @@ export class NDKEventList {
   private _until: number;
   private _eventList: NDKEvent[];
 
-  public constructor(eventList: NDKEvent[]) {
-    this._eventList = eventList;
+  public constructor() {
+    this._eventList = [];
     this._until = Math.trunc(new Date().getTime() / 1000);
   }
 
@@ -22,6 +22,7 @@ export class NDKEventList {
         this._eventList = [...this._eventList, event];
       }
     }
+    return this;
   }
 
   get eventList(): NDKEvent[] {

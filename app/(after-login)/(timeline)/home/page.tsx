@@ -5,32 +5,17 @@ import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "@/src/NDKContext";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
-import { NDKEventList } from "@/src/NDKEventList";
-import MoreLoadButton from "@/components/MoreLoadButton";
+import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
-
-const timelineEventList = new NDKEventList([]);
 
 export default function Home() {
   const [messageReaded, setMessageReaded] = useState<boolean>(true);
-  const [timeline, setTimeline] = useState<NDKEvent[]>([
-    ...timelineEventList.eventList,
-  ]);
-  const [pubkey, setPubkey] = useState<string>("");
   const ndk = useContext(NDKContext);
-  const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
+  const [filter, setFilter] = useState<NDKFilter>();
 
   useEffect(() => {
     setMessageReaded(localStorage.getItem("messageReaded") == "true");
   }, []);
-
-  const getEvent = async (filter: NDKFilter) => {
-    setMoreLoadButtonValid(false);
-    timelineEventList.concat(await ndk.fetchEvents(filter));
-    setTimeline(timelineEventList.eventList);
-    setMoreLoadButtonValid(true);
-  };
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -43,28 +28,14 @@ export default function Home() {
 
       await getExplicitRelayUrls(ndk, user);
 
-      if (timeline.length <= 10) {
-        const myKind1Filter: NDKFilter = {
-          kinds: [1],
-          authors: [user.pubkey],
-          limit: 10,
-        };
-        getEvent(myKind1Filter);
-      }
-      setPubkey(user.pubkey);
+      setFilter({
+        kinds: [1],
+        authors: [user.pubkey],
+        limit: 10,
+      });
     };
     fetchdata();
   }, []);
-
-  const getMoreEvent = () => {
-    const myKind1Filter: NDKFilter = {
-      kinds: [1],
-      authors: [pubkey],
-      limit: 10,
-      until: timelineEventList.until,
-    };
-    getEvent(myKind1Filter);
-  };
 
   return (
     <div className="space-y-8">
@@ -99,8 +70,7 @@ export default function Home() {
       ) : (
         <></>
       )}
-      <Timeline timeline={timeline} />
-      <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />
+      <Timeline filter={filter} />
     </div>
   );
 }
