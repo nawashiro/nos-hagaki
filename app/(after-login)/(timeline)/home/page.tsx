@@ -14,10 +14,6 @@ export default function Home() {
   const [filter, setFilter] = useState<NDKFilter>();
 
   useEffect(() => {
-    setMessageReaded(localStorage.getItem("messageReaded") == "true");
-  }, []);
-
-  useEffect(() => {
     const fetchdata = async () => {
       const nip07signer = new NDKNip07Signer();
       const user = await nip07signer.user();
@@ -34,6 +30,7 @@ export default function Home() {
         limit: 10,
       });
     };
+    setMessageReaded(localStorage.getItem("messageReaded") == "true");
     fetchdata();
   }, []);
 
