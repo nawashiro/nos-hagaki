@@ -19,14 +19,17 @@ export default function Home() {
   ]);
   const [pubkey, setPubkey] = useState<string>("");
   const ndk = useContext(NDKContext);
+  const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
 
   useEffect(() => {
     setMessageReaded(localStorage.getItem("messageReaded") == "true");
   }, []);
 
   const getEvent = async (filter: NDKFilter) => {
+    setMoreLoadButtonValid(false);
     timelineEventList.concat(await ndk.fetchEvents(filter));
     setTimeline(timelineEventList.eventList);
+    setMoreLoadButtonValid(true);
   };
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export default function Home() {
         <></>
       )}
       <Timeline timeline={timeline} />
-      <MoreLoadButton onClick={getMoreEvent} />
+      <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />
     </div>
   );
 }

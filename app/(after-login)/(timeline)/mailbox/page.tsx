@@ -17,10 +17,13 @@ export default function Mailbox() {
   ]);
   const [follows, setFollows] = useState<string[]>(followsList);
   const ndk = useContext(NDKContext);
+  const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
 
   const getEvent = async (filter: NDKFilter) => {
+    setMoreLoadButtonValid(false);
     timelineEventList.concat(await ndk.fetchEvents(filter));
     setTimeline(timelineEventList.eventList);
+    setMoreLoadButtonValid(true);
   };
 
   useEffect(() => {
@@ -65,7 +68,7 @@ export default function Mailbox() {
   return (
     <div className="space-y-8">
       <Timeline timeline={timeline} />
-      <MoreLoadButton onClick={getMoreEvent} />
+      <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />
     </div>
   );
 }
