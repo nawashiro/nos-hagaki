@@ -24,7 +24,7 @@ export default function Timeline({
     if (filter) {
       setMoreLoadButtonValid(false);
       setTimeline(timeline.concat(await ndk.fetchEvents(filter)));
-      setProfiles(await getProfiles(ndk, filter.authors));
+      setProfiles(await getProfiles(ndk, filter));
       setMoreLoadButtonValid(true);
     }
   };

@@ -1,18 +1,12 @@
 import { NDKEvent, NDKFilter } from "@nostr-dev-kit/ndk";
 import { NDKSingleton } from "./NDKSingleton";
 
-export const getProfiles = async (
-  ndk: NDKSingleton,
-  users: string[] | undefined
-) => {
-  if (!users) {
+export const getProfiles = async (ndk: NDKSingleton, filter: NDKFilter) => {
+  if (!filter) {
     return new Set<NDKEvent>();
   }
 
-  const filter: NDKFilter = {
-    kinds: [0],
-    authors: users,
-  };
+  filter.kinds = [0];
 
   const profileEvents: Set<NDKEvent> = await ndk.fetchEvents(filter);
 
