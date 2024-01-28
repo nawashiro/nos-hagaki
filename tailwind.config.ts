@@ -19,6 +19,6 @@ const config: Config = {
       md: "752px",
     },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/line-clamp")],
 };
 export default config;

@@ -1,20 +1,23 @@
-import { NDKFilter } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKFilter } from "@nostr-dev-kit/ndk";
 import EventCard from "./EventCard";
 import { NDKEventList } from "@/src/NDKEventList";
 import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "@/src/NDKContext";
 import MoreLoadButton from "./MoreLoadButton";
+import { getProfiles } from "@/src/getProfiles";
 
 export default function Timeline({ filter }: { filter: NDKFilter }) {
   const [timeline, setTimeline] = useState<NDKEventList>(new NDKEventList());
   const ndk = useContext(NDKContext);
   const [moreLoadButtonValid, setMoreLoadButtonValid] =
     useState<boolean>(false);
+  const [profiles, setProfiles] = useState(new Set<NDKEvent>());
 
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
       setTimeline(timeline.concat(await ndk.fetchEvents(filter)));
+      setProfiles(await getProfiles(ndk, filter.authors));
       setMoreLoadButtonValid(true);
     }
   };
@@ -38,7 +41,7 @@ export default function Timeline({ filter }: { filter: NDKFilter }) {
             return dateB - dateA;
           })
           .map((event, index) => (
-            <EventCard event={event} key={index} />
+            <EventCard event={event} key={index} profiles={profiles} />
           ))}
       </div>
       <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />

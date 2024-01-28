@@ -1,7 +1,14 @@
 import { NDKEvent, NDKFilter } from "@nostr-dev-kit/ndk";
 import { NDKSingleton } from "./NDKSingleton";
 
-export const getProfiles = async (ndk: NDKSingleton, users: string[]) => {
+export const getProfiles = async (
+  ndk: NDKSingleton,
+  users: string[] | undefined
+) => {
+  if (!users) {
+    throw new Error("There are 0 users.");
+  }
+
   const filter: NDKFilter = {
     kinds: [0],
     authors: users,
@@ -9,8 +16,10 @@ export const getProfiles = async (ndk: NDKSingleton, users: string[]) => {
 
   const profileEvents: Set<NDKEvent> = await ndk.fetchEvents(filter);
 
-  if (!profileEvents) {
-    throw "kind 0 is not found.";
+  console.log(profileEvents);
+
+  if (profileEvents.size == 0) {
+    throw new Error("kind 0 is not found.");
   }
 
   return profileEvents;
