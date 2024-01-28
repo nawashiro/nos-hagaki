@@ -36,7 +36,7 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
-      {!messageReaded ? (
+      {!messageReaded && (
         <DivCard>
           <p>
             おかえりなさい。あっ…いえ、初めましてかもしれないわね。
@@ -64,10 +64,8 @@ export default function Home() {
             </Link>
           </div>
         </DivCard>
-      ) : (
-        <></>
       )}
-      <Timeline filter={filter} />
+      {filter && <Timeline filter={filter} />}
     </div>
   );
 }

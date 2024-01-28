@@ -30,5 +30,5 @@ export default function Mailbox() {
     fetchdata();
   }, []);
 
-  return <Timeline filter={filter} />;
+  return filter && <Timeline filter={filter} />;
 }

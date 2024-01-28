@@ -5,17 +5,13 @@ import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "@/src/NDKContext";
 import MoreLoadButton from "./MoreLoadButton";
 
-export default function Timeline({
-  filter,
-}: {
-  filter: NDKFilter | undefined;
-}) {
+export default function Timeline({ filter }: { filter: NDKFilter }) {
   const [timeline, setTimeline] = useState<NDKEventList>(new NDKEventList());
   const ndk = useContext(NDKContext);
   const [moreLoadButtonValid, setMoreLoadButtonValid] =
     useState<boolean>(false);
 
-  const getEvent = async (filter: NDKFilter | undefined) => {
+  const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
       setTimeline(timeline.concat(await ndk.fetchEvents(filter)));
@@ -27,7 +23,7 @@ export default function Timeline({
     if (timeline.eventList.length <= 10) {
       getEvent(filter);
     }
-  }, [filter]);
+  }, []);
 
   const getMoreEvent = () => {
     getEvent({ ...filter, until: timeline.until });
