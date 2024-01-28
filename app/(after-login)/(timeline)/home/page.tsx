@@ -93,8 +93,6 @@ export default function Home() {
         </DivCard>
       )}
 
-      <h2 className="font-bold text-2xl">プロフィール</h2>
-
       <div className="space-y-4">
         {profile.picture ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -115,6 +113,7 @@ export default function Home() {
             className="rounded-2xl"
           />
         )}
+
         <div>
           {profile.display_name && (
             <p className="font-bold">{profile.display_name}</p>
@@ -123,20 +122,25 @@ export default function Home() {
             @{profile.name || pubkey}
           </p>
         </div>
-        {profile.about && <p className="font-bold">{profile.about}</p>}
+
+        <div>
+          {profile.website && (
+            <a className="text-neutral-500" href={profile.website}>
+              {profile.website}
+            </a>
+          )}
+          {profile.about && <p>{profile.about}</p>}
+        </div>
       </div>
 
-      <h2 className="font-bold text-2xl">すみか</h2>
-
       <div className="space-y-4">
-        <p className="text-neutral-500">
-          {regions[0]?.countryName?.ja || "どこか…"}
-        </p>
+        <h2 className="font-bold">あなたのすみか</h2>
         {regions && (
           <RegionContext.Provider value={regions[0]}>
             <MapPage />
           </RegionContext.Provider>
         )}
+        <p>{regions[0]?.countryName?.ja || "どこか…"}</p>
       </div>
       {filter && <Timeline filter={filter} regions={regions} />}
     </div>
