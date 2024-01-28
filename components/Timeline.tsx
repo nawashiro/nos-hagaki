@@ -5,15 +5,20 @@ import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "@/src/NDKContext";
 import MoreLoadButton from "./MoreLoadButton";
 import { getProfiles } from "@/src/getProfiles";
-import { Region, getRegions } from "@/src/getRegions";
+import { Region } from "@/src/getRegions";
 
-export default function Timeline({ filter }: { filter: NDKFilter }) {
+export default function Timeline({
+  filter,
+  regions,
+}: {
+  filter: NDKFilter;
+  regions: Region[];
+}) {
   const [timeline, setTimeline] = useState<NDKEventList>(new NDKEventList());
   const ndk = useContext(NDKContext);
   const [moreLoadButtonValid, setMoreLoadButtonValid] =
     useState<boolean>(false);
   const [profiles, setProfiles] = useState(new Set<NDKEvent>());
-  const [regions, setRegions] = useState<Region[]>([]);
 
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
@@ -25,13 +30,9 @@ export default function Timeline({ filter }: { filter: NDKFilter }) {
   };
 
   useEffect(() => {
-    const asyncActions = async () => {
-      setRegions(await getRegions(filter.authors || []));
-    };
     if (timeline.eventList.size <= 10) {
       getEvent(filter);
     }
-    asyncActions();
   }, []);
 
   const getMoreEvent = () => {

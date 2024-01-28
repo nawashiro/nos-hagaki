@@ -7,11 +7,13 @@ import { NDKContext } from "@/src/NDKContext";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
+import { Region, getRegions } from "@/src/getRegions";
 
 export default function Home() {
   const [messageReaded, setMessageReaded] = useState<boolean>(true);
   const ndk = useContext(NDKContext);
   const [filter, setFilter] = useState<NDKFilter>();
+  const [regions, setRegions] = useState<Region[]>([]);
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -29,6 +31,8 @@ export default function Home() {
         authors: [user.pubkey],
         limit: 10,
       });
+
+      setRegions(await getRegions([user.pubkey]));
     };
     setMessageReaded(localStorage.getItem("messageReaded") == "true");
     fetchdata();
@@ -66,7 +70,7 @@ export default function Home() {
         </DivCard>
       )}
 
-      {filter && <Timeline filter={filter} />}
+      {filter && <Timeline filter={filter} regions={regions} />}
     </div>
   );
 }
