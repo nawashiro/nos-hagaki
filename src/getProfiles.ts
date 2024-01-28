@@ -6,7 +6,7 @@ export const getProfiles = async (
   users: string[] | undefined
 ) => {
   if (!users) {
-    throw new Error("There are 0 users.");
+    return new Set<NDKEvent>();
   }
 
   const filter: NDKFilter = {
@@ -15,12 +15,6 @@ export const getProfiles = async (
   };
 
   const profileEvents: Set<NDKEvent> = await ndk.fetchEvents(filter);
-
-  console.log(profileEvents);
-
-  if (profileEvents.size == 0) {
-    throw new Error("kind 0 is not found.");
-  }
 
   return profileEvents;
 };

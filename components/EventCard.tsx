@@ -1,13 +1,16 @@
 import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import Image from "next/image";
+import { Region } from "@/src/getRegions";
 
 export default function EventCard({
   event,
   profiles,
+  regions,
 }: {
   event: NDKEvent;
   profiles: Set<NDKEvent>;
+  regions: Region[];
 }) {
   const profileEvent: NDKEvent | undefined = (() => {
     for (const value of profiles) {
@@ -17,9 +20,11 @@ export default function EventCard({
     }
   })();
 
-  if (!profileEvent) {
-    throw new Error("kind 0 is not found.");
+  if (profileEvent == undefined) {
+    throw new Error("profile is undefined.");
   }
+
+  const region = regions.find((element) => element.pubkey == event.pubkey);
 
   const profile = JSON.parse(profileEvent.content);
 
@@ -31,28 +36,25 @@ export default function EventCard({
       href={`/post/${event.id}`}
       className="block w-full p-4 rounded-2xl border-2 border-neutral-200 space-y-4 hover:bg-neutral-200"
     >
-      <div className="flex">
-        {profile.picture ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={profile.picture}
-            alt={"avater picture"}
-            width={64}
-            height={64}
-            loading="lazy"
-            className="rounded-2xl bg-neutral-200"
-          />
-        ) : (
-          <Image
-            src="/img/default_icon.webp"
-            alt="avater picture"
-            width={64}
-            height={64}
-            className="rounded-2xl"
-          />
-        )}
-        <p className="ml-auto text-neutral-500">{event.content.length}文字</p>
-      </div>
+      {profile.picture ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={profile.picture}
+          alt={"avater picture"}
+          width={64}
+          height={64}
+          loading="lazy"
+          className="rounded-2xl bg-neutral-200"
+        />
+      ) : (
+        <Image
+          src="/img/default_icon.webp"
+          alt="avater picture"
+          width={64}
+          height={64}
+          className="rounded-2xl"
+        />
+      )}
 
       <p className="line-clamp-2">{event.content}</p>
 
@@ -62,7 +64,9 @@ export default function EventCard({
           <p className="text-neutral-500">@{profile.name}</p>
         </div>
         <p className="text-neutral-500">{dateTime.toLocaleDateString()}</p>
+        <p className="text-neutral-500">{region?.countryName?.ja}</p>
       </div>
+      <p className="ml-auto text-neutral-500">{event.content.length}文字</p>
     </Link>
   );
 }

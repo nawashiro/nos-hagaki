@@ -65,6 +65,7 @@ export default function Home() {
           </div>
         </DivCard>
       )}
+
       {filter && <Timeline filter={filter} />}
     </div>
   );

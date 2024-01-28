@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from "react";
 import { NDKContext } from "@/src/NDKContext";
 import MoreLoadButton from "./MoreLoadButton";
 import { getProfiles } from "@/src/getProfiles";
+import { Region, getRegions } from "@/src/getRegions";
 
 export default function Timeline({ filter }: { filter: NDKFilter }) {
   const [timeline, setTimeline] = useState<NDKEventList>(new NDKEventList());
@@ -12,6 +13,7 @@ export default function Timeline({ filter }: { filter: NDKFilter }) {
   const [moreLoadButtonValid, setMoreLoadButtonValid] =
     useState<boolean>(false);
   const [profiles, setProfiles] = useState(new Set<NDKEvent>());
+  const [regions, setRegions] = useState<Region[]>([]);
 
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
@@ -23,9 +25,13 @@ export default function Timeline({ filter }: { filter: NDKFilter }) {
   };
 
   useEffect(() => {
+    const asyncActions = async () => {
+      setRegions(await getRegions(filter.authors || []));
+    };
     if (timeline.eventList.size <= 10) {
       getEvent(filter);
     }
+    asyncActions();
   }, []);
 
   const getMoreEvent = () => {
@@ -41,7 +47,12 @@ export default function Timeline({ filter }: { filter: NDKFilter }) {
             return dateB - dateA;
           })
           .map((event, index) => (
-            <EventCard event={event} key={index} profiles={profiles} />
+            <EventCard
+              event={event}
+              key={index}
+              profiles={profiles}
+              regions={regions}
+            />
           ))}
       </div>
       <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />
