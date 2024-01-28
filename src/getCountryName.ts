@@ -1,4 +1,3 @@
-import axios from "axios";
 const pointInPolygon = require("point-in-polygon");
 
 interface GeoJSONFeature {
@@ -20,13 +19,12 @@ export interface CountryName {
   ja: string;
 }
 
-export async function getCountryName(
+export function getCountryName(
   latitude: number,
-  longitude: number
-): Promise<CountryName | null> {
+  longitude: number,
+  geojsonData: any
+): CountryName | null {
   try {
-    const res = await axios.get("/geojson/mundo.geojson");
-    const geojsonData = res.data;
     const geojson: GeoJSONFeature[] = geojsonData.features;
 
     for (const feature of geojson) {

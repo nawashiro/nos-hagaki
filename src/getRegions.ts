@@ -1,3 +1,4 @@
+import axios from "axios";
 import { CountryName, getCountryName } from "./getCountryName";
 
 export interface Region {
@@ -8,6 +9,9 @@ export interface Region {
 }
 
 export async function getRegions(pubkeys: string[]) {
+  const res = await axios.get("/geojson/mundo.geojson");
+  const geojsonData = res.data;
+
   const seedrandom = require("seedrandom");
   let regions: Region[] = [];
 
@@ -18,7 +22,11 @@ export async function getRegions(pubkeys: string[]) {
         const longitude = rng() * 360 - 180; // 経度を-180から180の間でランダムに選ぶ
         const latitude = Math.acos(2 * rng() - 1) * (180 / Math.PI) - 90; // 緯度を-90から90の間でランダムに選ぶ
 
-        const countryName = await getCountryName(longitude, latitude);
+        const countryName = await getCountryName(
+          longitude,
+          latitude,
+          geojsonData
+        );
 
         if (countryName) {
           return {

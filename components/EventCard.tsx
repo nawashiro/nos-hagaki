@@ -34,7 +34,7 @@ export default function EventCard({
   return (
     <Link
       href={`/post/${event.id}`}
-      className="block w-full p-4 rounded-2xl border-2 border-neutral-200 space-y-4 hover:bg-neutral-200"
+      className="relative block w-full p-4 rounded-2xl border-2 border-neutral-200 space-y-4 hover:bg-neutral-200"
     >
       {profile.picture ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -64,9 +64,14 @@ export default function EventCard({
           <p className="text-neutral-500">@{profile.name}</p>
         </div>
         <p className="text-neutral-500">{dateTime.toLocaleDateString()}</p>
-        <p className="text-neutral-500">{region?.countryName?.ja}</p>
+        <p className="text-neutral-500">
+          {region?.countryName?.ja || "どこか…"}
+        </p>
       </div>
-      <p className="ml-auto text-neutral-500">{event.content.length}文字</p>
+
+      <p className="absolute ml-auto text-neutral-500 bottom-4 right-4">
+        {event.content.length}文字
+      </p>
     </Link>
   );
 }

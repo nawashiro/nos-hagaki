@@ -15,6 +15,6 @@ export default function MoreLoadButton({
       さらに読み込む
     </SimpleButton>
   ) : (
-    <p className="text-center py-2">読み込み中…</p>
+    <p className="text-center py-2">がんばってます…</p>
   );
 }
