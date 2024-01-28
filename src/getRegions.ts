@@ -2,7 +2,7 @@ import axios from "axios";
 import { CountryName, getCountryName } from "./getCountryName";
 
 export interface Region {
-  pubkey: string;
+  pubkey: string | null;
   longitude: number | null;
   latitude: number | null;
   countryName: CountryName | null;
