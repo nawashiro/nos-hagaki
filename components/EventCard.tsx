@@ -72,6 +72,16 @@ export default function EventCard({
       <p className="absolute ml-auto text-neutral-500 top-0 right-4">
         {event.content.length}文字
       </p>
+      <Image
+        src={"/img/postmark.png"}
+        height={64}
+        width={93}
+        alt="postmark"
+        className="absolute top-0 left-16"
+      />
+      <p className="absolute top-[20px] left-[86px] text-[#c30c08]">
+        {region?.countryName?.iso || "どこか…"}
+      </p>
     </Link>
   );
 }
