@@ -2,30 +2,27 @@ import { NDKEvent } from "@nostr-dev-kit/ndk";
 
 export class NDKEventList {
   private _until: number;
-  private _eventList: NDKEvent[];
+  private _eventList: Set<NDKEvent>;
 
   public constructor() {
-    this._eventList = [];
+    this._eventList = new Set<NDKEvent>();
     this._until = Math.trunc(new Date().getTime() / 1000);
   }
 
   public concat(eventList: Set<NDKEvent>) {
-    for (const event of Array.from(eventList)) {
-      if (
-        !this._eventList.find((element: NDKEvent) => element.id == event.id)
-      ) {
-        const created_at = event.created_at || 0;
-        if (this._until > created_at) {
-          this._until = created_at;
-        }
+    this._eventList = new Set<NDKEvent>([...this._eventList, ...eventList]);
 
-        this._eventList = [...this._eventList, event];
+    for (const event of eventList) {
+      const created_at = event.created_at || 0;
+      if (this._until > created_at) {
+        this._until = created_at;
       }
     }
+
     return this;
   }
 
-  get eventList(): NDKEvent[] {
+  get eventList(): Set<NDKEvent> {
     return this._eventList;
   }
 

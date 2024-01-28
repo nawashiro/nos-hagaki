@@ -20,7 +20,7 @@ export default function Timeline({ filter }: { filter: NDKFilter }) {
   };
 
   useEffect(() => {
-    if (timeline.eventList.length <= 10) {
+    if (timeline.eventList.size <= 10) {
       getEvent(filter);
     }
   }, []);
@@ -31,7 +31,7 @@ export default function Timeline({ filter }: { filter: NDKFilter }) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        {timeline.eventList
+        {Array.from(timeline.eventList)
           .sort((a, b) => {
             const dateA = a.created_at || 0;
             const dateB = b.created_at || 0;
