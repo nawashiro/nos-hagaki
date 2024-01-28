@@ -129,14 +129,14 @@ export default function Home() {
       <h2 className="font-bold text-2xl">すみか</h2>
 
       <div className="space-y-4">
+        <p className="text-neutral-500">
+          {regions[0]?.countryName?.ja || "どこか…"}
+        </p>
         {regions && (
           <RegionContext.Provider value={regions[0]}>
             <MapPage />
           </RegionContext.Provider>
         )}
-        <p className="text-neutral-500">
-          {regions[0]?.countryName?.ja || "どこか…"}
-        </p>
       </div>
       {filter && <Timeline filter={filter} regions={regions} />}
     </div>

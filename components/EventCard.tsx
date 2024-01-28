@@ -69,7 +69,7 @@ export default function EventCard({
         </p>
       </div>
 
-      <p className="absolute ml-auto text-neutral-500 bottom-4 right-4">
+      <p className="absolute ml-auto text-neutral-500 top-0 right-4">
         {event.content.length}文字
       </p>
     </Link>

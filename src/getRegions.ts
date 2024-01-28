@@ -23,8 +23,8 @@ export async function getRegions(pubkeys: string[]) {
         const latitude = Math.acos(2 * rng() - 1) * (180 / Math.PI) - 90; // 緯度を-90から90の間でランダムに選ぶ
 
         const countryName = await getCountryName(
-          longitude,
           latitude,
+          longitude,
           geojsonData
         );
 
