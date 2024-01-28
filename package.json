@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@nostr-dev-kit/ndk": "^2.3.3",
+    "@nostr-dev-kit/ndk-cache-dexie": "^2.2.4",
     "@tailwindcss/line-clamp": "^0.4.4",
     "axios": "^1.6.7",
     "next": "14.0.4",

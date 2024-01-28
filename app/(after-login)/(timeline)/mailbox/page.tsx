@@ -1,6 +1,6 @@
 "use client";
 import { useContext, useEffect, useState } from "react";
-import { NDKContext } from "@/src/NDKContext";
+import { NDKContext, ProfileContext } from "@/src/context";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import { getFollows } from "@/src/getFollows";
@@ -11,6 +11,7 @@ export default function Mailbox() {
   const ndk = useContext(NDKContext);
   const [filter, setFilter] = useState<NDKFilter>();
   const [regions, setRegions] = useState<Region[]>([]);
+  const profilesContext = useContext(ProfileContext);
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -24,12 +25,24 @@ export default function Mailbox() {
       await getExplicitRelayUrls(ndk, user);
 
       const follows = await getFollows(ndk, user);
-      setFilter({
+
+      const kind1Filter = {
         kinds: [1],
         authors: follows,
         limit: 10,
-      });
+      };
 
+      const kind0Filter: NDKFilter = {
+        kinds: [0],
+        authors: follows,
+      };
+
+      profilesContext.clear;
+      for (const value of await ndk.fetchEvents(kind0Filter)) {
+        profilesContext.add(value);
+      }
+
+      setFilter(kind1Filter);
       setRegions(await getRegions(follows));
     };
     fetchdata();

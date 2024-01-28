@@ -3,9 +3,9 @@ import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
-import { NDKContext } from "@/src/NDKContext";
+import { NDKContext, ProfileContext } from "@/src/context";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
 import { Region, getRegions } from "@/src/getRegions";
 
@@ -14,6 +14,8 @@ export default function Home() {
   const ndk = useContext(NDKContext);
   const [filter, setFilter] = useState<NDKFilter>();
   const [regions, setRegions] = useState<Region[]>([]);
+  const [profiles, setProfiles] = useState(new Set<NDKEvent>());
+  const profilesContext = useContext(ProfileContext);
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -26,12 +28,24 @@ export default function Home() {
 
       await getExplicitRelayUrls(ndk, user);
 
-      setFilter({
+      const kind1Filter: NDKFilter = {
         kinds: [1],
         authors: [user.pubkey],
         limit: 10,
-      });
+      };
 
+      const kind0Filter: NDKFilter = {
+        kinds: [0],
+        authors: [user.pubkey],
+      };
+
+      profilesContext.clear;
+      for (const value of await ndk.fetchEvents(kind0Filter)) {
+        profilesContext.add(value);
+      }
+
+      setProfiles(profilesContext);
+      setFilter(kind1Filter);
       setRegions(await getRegions([user.pubkey]));
     };
     setMessageReaded(localStorage.getItem("messageReaded") == "true");

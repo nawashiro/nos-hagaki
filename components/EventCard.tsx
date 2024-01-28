@@ -2,16 +2,18 @@ import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import Image from "next/image";
 import { Region } from "@/src/getRegions";
+import { useContext } from "react";
+import { ProfileContext } from "@/src/context";
 
 export default function EventCard({
   event,
-  profiles,
   regions,
 }: {
   event: NDKEvent;
-  profiles: Set<NDKEvent>;
   regions: Region[];
 }) {
+  const profiles = useContext(ProfileContext);
+
   const profileEvent: NDKEvent | undefined = (() => {
     for (const value of profiles) {
       if (value.pubkey == event.pubkey) {
@@ -20,14 +22,8 @@ export default function EventCard({
     }
   })();
 
-  if (profileEvent == undefined) {
-    throw new Error("profile is undefined.");
-  }
-
   const region = regions.find((element) => element.pubkey == event.pubkey);
-
-  const profile = JSON.parse(profileEvent.content);
-
+  const profile = profileEvent ? JSON.parse(profileEvent.content) : {};
   const created_at = event.created_at || 0;
   const dateTime = new Date(created_at * 1000);
 
@@ -56,12 +52,16 @@ export default function EventCard({
         />
       )}
 
-      <p className="line-clamp-2">{event.content}</p>
+      <p className="line-clamp-2 break-words">{event.content}</p>
 
       <div>
         <div className="flex space-x-2">
-          <p className="font-bold">{profile.display_name || ""}</p>
-          <p className="text-neutral-500">@{profile.name}</p>
+          {profile.display_name && (
+            <p className="font-bold">{profile.display_name}</p>
+          )}
+          <p className="text-neutral-500 break-all">
+            @{profile.name || event.pubkey}
+          </p>
         </div>
         <p className="text-neutral-500">{dateTime.toLocaleDateString()}</p>
         <p className="text-neutral-500">
