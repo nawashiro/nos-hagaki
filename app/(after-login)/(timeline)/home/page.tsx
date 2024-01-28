@@ -3,45 +3,24 @@ import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
-import { NDKContext } from "@/src/NDKContext";
+import { NDKContext, ProfileContext, RegionContext } from "@/src/context";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
-import { NDKEventList } from "@/src/NDKEventList";
-import MoreLoadButton from "@/components/MoreLoadButton";
+import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
-
-const timelineEventList = new NDKEventList([]);
+import { Region, getRegions } from "@/src/getRegions";
+import Image from "next/image";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import MapPage from "@/components/mapWrapper";
 
 export default function Home() {
   const [messageReaded, setMessageReaded] = useState<boolean>(true);
-  const [timeline, setTimeline] = useState<NDKEvent[]>([
-    ...timelineEventList.eventList,
-  ]);
-  const [pubkey, setPubkey] = useState<string>("");
   const ndk = useContext(NDKContext);
+  const [filter, setFilter] = useState<NDKFilter>();
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [profile, setProfile] = useState<any>({});
+  const profilesContext = useContext(ProfileContext);
 
-  useEffect(() => {
-    setMessageReaded(localStorage.getItem("messageReaded") == "true");
-  });
-
-  const getEvent = (filter: NDKFilter) => {
-    const sub = ndk.subscribe(filter, { closeOnEose: true });
-    sub.on("event", (event: NDKEvent) => {
-      if (
-        !timelineEventList.eventList.find(
-          (element: NDKEvent) => element.id == event.id
-        )
-      ) {
-        const created_at = event.created_at || 0;
-        if (timelineEventList.until > created_at) {
-          timelineEventList.until = created_at;
-        }
-
-        timelineEventList.push(event);
-        setTimeline(timelineEventList.eventList);
-      }
-    });
-  };
+  const [pubkey, setPubkey] = useState<string>("");
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -52,34 +31,39 @@ export default function Home() {
         throw new Error("pubkey is false");
       }
 
+      setPubkey(user.pubkey);
+
       await getExplicitRelayUrls(ndk, user);
 
-      if (timeline.length <= 10) {
-        const myKind1Filter: NDKFilter = {
-          kinds: [1],
-          authors: [user.pubkey],
-          limit: 10,
-        };
-        getEvent(myKind1Filter);
+      const kind1Filter: NDKFilter = {
+        kinds: [1],
+        authors: [user.pubkey],
+        limit: 10,
+      };
+
+      const kind0Filter: NDKFilter = {
+        kinds: [0],
+        authors: [user.pubkey],
+      };
+
+      profilesContext.clear;
+      for (const value of await ndk.fetchEvents(kind0Filter)) {
+        profilesContext.add(value);
       }
-      setPubkey(user.pubkey);
+
+      const profileEvent = Array.from(profilesContext)[0];
+      setProfile(profileEvent ? JSON.parse(profileEvent.content) : {});
+
+      setFilter(kind1Filter);
+      setRegions(await getRegions([user.pubkey]));
     };
+    setMessageReaded(localStorage.getItem("messageReaded") == "true");
     fetchdata();
   }, []);
 
-  const getMoreEvent = () => {
-    const myKind1Filter: NDKFilter = {
-      kinds: [1],
-      authors: [pubkey],
-      limit: 10,
-      until: timelineEventList.until,
-    };
-    getEvent(myKind1Filter);
-  };
-
   return (
     <div className="space-y-8">
-      {!messageReaded ? (
+      {!messageReaded && (
         <DivCard>
           <p>
             おかえりなさい。あっ…いえ、初めましてかもしれないわね。
@@ -107,11 +91,54 @@ export default function Home() {
             </Link>
           </div>
         </DivCard>
-      ) : (
-        <></>
       )}
-      <Timeline timeline={timeline} />
-      <MoreLoadButton onClick={getMoreEvent} />
+
+      <h2 className="font-bold text-2xl">プロフィール</h2>
+
+      <div className="space-y-4">
+        {profile.picture ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={profile.picture}
+            alt={"avater picture"}
+            width={64}
+            height={64}
+            loading="lazy"
+            className="rounded-2xl bg-neutral-200"
+          />
+        ) : (
+          <Image
+            src="/img/default_icon.webp"
+            alt="avater picture"
+            width={64}
+            height={64}
+            className="rounded-2xl"
+          />
+        )}
+        <div>
+          {profile.display_name && (
+            <p className="font-bold">{profile.display_name}</p>
+          )}
+          <p className="text-neutral-500 break-all">
+            @{profile.name || pubkey}
+          </p>
+        </div>
+        {profile.about && <p className="font-bold">{profile.about}</p>}
+      </div>
+
+      <h2 className="font-bold text-2xl">すみか</h2>
+
+      <div className="space-y-4">
+        <p className="text-neutral-500">
+          {regions[0]?.countryName?.ja || "どこか…"}
+        </p>
+        {regions && (
+          <RegionContext.Provider value={regions[0]}>
+            <MapPage />
+          </RegionContext.Provider>
+        )}
+      </div>
+      {filter && <Timeline filter={filter} regions={regions} />}
     </div>
   );
 }

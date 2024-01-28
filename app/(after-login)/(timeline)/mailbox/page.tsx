@@ -1,41 +1,17 @@
 "use client";
 import { useContext, useEffect, useState } from "react";
-import { NDKContext } from "@/src/NDKContext";
+import { NDKContext, ProfileContext } from "@/src/context";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
-import { NDKEventList } from "@/src/NDKEventList";
+import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import { getFollows } from "@/src/getFollows";
-import MoreLoadButton from "@/components/MoreLoadButton";
 import Timeline from "@/components/Timeline";
-
-const timelineEventList = new NDKEventList([]);
-let followsList: string[] = [];
+import { Region, getRegions } from "@/src/getRegions";
 
 export default function Mailbox() {
-  const [timeline, setTimeline] = useState<NDKEvent[]>([
-    ...timelineEventList.eventList,
-  ]);
-  const [follows, setFollows] = useState<string[]>(followsList);
   const ndk = useContext(NDKContext);
-
-  const getEvent = (filter: NDKFilter) => {
-    const sub = ndk.subscribe(filter, { closeOnEose: true });
-    sub.on("event", (event: NDKEvent) => {
-      if (
-        !timelineEventList.eventList.find(
-          (element: NDKEvent) => element.id == event.id
-        )
-      ) {
-        const created_at = event.created_at || 0;
-        if (timelineEventList.until > created_at) {
-          timelineEventList.until = created_at;
-        }
-
-        timelineEventList.push(event);
-        setTimeline(timelineEventList.eventList);
-      }
-    });
-  };
+  const [filter, setFilter] = useState<NDKFilter>();
+  const [regions, setRegions] = useState<Region[]>([]);
+  const profilesContext = useContext(ProfileContext);
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -48,38 +24,29 @@ export default function Mailbox() {
 
       await getExplicitRelayUrls(ndk, user);
 
-      if (followsList.length == 0) {
-        followsList = await getFollows(ndk, user);
+      const follows = await getFollows(ndk, user);
+
+      const kind1Filter = {
+        kinds: [1],
+        authors: follows,
+        limit: 10,
+      };
+
+      const kind0Filter: NDKFilter = {
+        kinds: [0],
+        authors: follows,
+      };
+
+      profilesContext.clear;
+      for (const value of await ndk.fetchEvents(kind0Filter)) {
+        profilesContext.add(value);
       }
 
-      if (timeline.length <= 10) {
-        const myKind1Filter: NDKFilter = {
-          kinds: [1],
-          authors: followsList,
-          limit: 10,
-        };
-        getEvent(myKind1Filter);
-      }
-
-      setFollows(followsList);
+      setFilter(kind1Filter);
+      setRegions(await getRegions(follows));
     };
     fetchdata();
   }, []);
 
-  const getMoreEvent = () => {
-    const myKind1Filter: NDKFilter = {
-      kinds: [1],
-      authors: follows,
-      limit: 10,
-      until: timelineEventList.until,
-    };
-    getEvent(myKind1Filter);
-  };
-
-  return (
-    <div className="space-y-8">
-      <Timeline timeline={timeline} />
-      <MoreLoadButton onClick={getMoreEvent} />
-    </div>
-  );
+  return filter && <Timeline filter={filter} regions={regions} />;
 }

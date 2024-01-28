@@ -10,7 +10,7 @@ export const getFollows = async (ndk: NDKSingleton, user: NDKUser) => {
   const followsEvent: NDKEvent | null = await ndk.fetchEvent(followsFilter);
 
   if (!followsEvent) {
-    throw "kind 3 is not found.";
+    return [];
   }
 
   let follows: string[] = [];

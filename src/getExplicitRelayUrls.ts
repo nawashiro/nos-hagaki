@@ -26,7 +26,7 @@ export const getExplicitRelayUrls = async (
     );
 
     if (!explicitRelayUrlsEvent) {
-      throw "kind 10002 is not found.";
+      return;
     }
 
     let explicitRelayUrls: string[] = [];
