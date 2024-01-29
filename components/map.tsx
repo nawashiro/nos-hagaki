@@ -1,3 +1,4 @@
+"use client";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useContext } from "react";
@@ -23,7 +24,7 @@ const Map = () => {
         center={[region.latitude, region.longitude]}
         zoom={3}
         scrollWheelZoom={false}
-        className="h-64 w-full rounded-2xl"
+        className="h-64 w-full rounded-2xl z-0"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

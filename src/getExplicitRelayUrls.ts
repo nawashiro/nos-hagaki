@@ -1,3 +1,4 @@
+"use client";
 import { NDKEvent, NDKFilter, NDKUser } from "@nostr-dev-kit/ndk";
 import { NDKSingleton } from "./NDKSingleton";
 

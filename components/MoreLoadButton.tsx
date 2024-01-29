@@ -1,3 +1,4 @@
+"use client";
 import { ButtonHTMLAttributes } from "react";
 import SimpleButton from "./simpleButton";
 

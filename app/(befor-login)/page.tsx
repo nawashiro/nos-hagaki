@@ -25,7 +25,7 @@ export default function Home() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-bold text-2xl">NosHagaki</h1>
+      <h1 className="font-bold text-2xl">NosHagaki β</h1>
       <p>
         これはWEB用のNostrクライアントです。
         <br />

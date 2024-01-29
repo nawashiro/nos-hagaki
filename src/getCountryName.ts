@@ -1,3 +1,4 @@
+"use client";
 const pointInPolygon = require("point-in-polygon");
 
 interface GeoJSONFeature {

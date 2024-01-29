@@ -1,3 +1,4 @@
+"use client";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
 
 export class NDKEventList {
