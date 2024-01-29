@@ -3,6 +3,7 @@ import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import Image from "next/image";
 import { Region } from "@/src/getRegions";
+import IconWithPostmark from "./iconWithPostmark";
 
 export default function EventCard({
   event,
@@ -33,25 +34,10 @@ export default function EventCard({
         className="relative block w-full p-4 rounded-2xl border-2 border-neutral-200 hover:bg-neutral-200"
       >
         <div className="space-y-4">
-          {profile.picture ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.picture}
-              alt={"avater picture"}
-              width={64}
-              height={64}
-              loading="lazy"
-              className="h-16 w-16 object-cover rounded-2xl bg-neutral-200"
-            />
-          ) : (
-            <Image
-              src="/img/default_icon.webp"
-              alt="avater picture"
-              width={64}
-              height={64}
-              className="rounded-2xl"
-            />
-          )}
+          <IconWithPostmark
+            picture={profile.picture}
+            iso={region?.countryName?.iso}
+          />
 
           <p className="line-clamp-2 break-words">{event.content}</p>
 
@@ -72,16 +58,6 @@ export default function EventCard({
         </div>
         <p className="absolute text-neutral-500 top-4 right-4">
           {event.content.length}文字
-        </p>
-        <Image
-          src={"/img/postmark.png"}
-          height={64}
-          width={93}
-          alt="postmark"
-          className="absolute top-4 left-16"
-        />
-        <p className="absolute font-medium text-sm w-[20px] text-center top-[37px] left-[86px] text-[#c30c08]">
-          {region?.countryName?.iso || "…"}
         </p>
       </Link>
     </>

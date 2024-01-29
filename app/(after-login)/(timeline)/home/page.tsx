@@ -15,7 +15,7 @@ import { NDKEventList } from "@/src/NDKEventList";
 export default function Home() {
   const [messageReaded, setMessageReaded] = useState<boolean>(true); //ログイン時メッセージ表示可否
   const ndk = useContext(NDKContext);
-  const [filter, setFilter] = useState<NDKFilter>(); //
+  const [filter, setFilter] = useState<NDKFilter>();
   const [regions, setRegions] = useState<Region[]>([]);
   const [myProfile, setMyProfile] = useState<any>({});
   const [profiles, setProfiles] = useState<NDKEvent[]>([]);
