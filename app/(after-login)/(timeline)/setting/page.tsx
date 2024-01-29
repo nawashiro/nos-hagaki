@@ -1,10 +1,12 @@
 "use client";
 import SimpleButton from "@/components/simpleButton";
+import { useRouter } from "next/navigation";
 
 export default function Setting() {
+  const router = useRouter();
   const logout = () => {
     localStorage.clear();
-    window.location.reload();
+    router.push("/");
   };
 
   return (

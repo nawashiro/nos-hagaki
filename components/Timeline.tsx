@@ -1,41 +1,23 @@
 "use client";
-import { NDKFilter } from "@nostr-dev-kit/ndk";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 import EventCard from "./EventCard";
 import { NDKEventList } from "@/src/NDKEventList";
-import { useContext, useEffect, useState } from "react";
-import { NDKContext } from "@/src/context";
 import MoreLoadButton from "./MoreLoadButton";
 import { Region } from "@/src/getRegions";
 
 export default function Timeline({
-  filter,
   regions,
+  profiles,
+  getMoreEvent,
+  timeline,
+  moreLoadButtonValid,
 }: {
-  filter: NDKFilter;
   regions: Region[];
+  profiles: NDKEvent[];
+  getMoreEvent: any;
+  timeline: NDKEventList;
+  moreLoadButtonValid: boolean;
 }) {
-  const [timeline, setTimeline] = useState<NDKEventList>(new NDKEventList());
-  const ndk = useContext(NDKContext);
-  const [moreLoadButtonValid, setMoreLoadButtonValid] =
-    useState<boolean>(false);
-
-  const getEvent = async (filter: NDKFilter) => {
-    if (filter) {
-      setMoreLoadButtonValid(false);
-      setTimeline(timeline.concat(await ndk.fetchEvents(filter)));
-      setMoreLoadButtonValid(true);
-    }
-  };
-
-  useEffect(() => {
-    if (timeline.eventList.size <= 10) {
-      getEvent(filter);
-    }
-  }, []);
-
-  const getMoreEvent = () => {
-    getEvent({ ...filter, until: timeline.until });
-  };
   return (
     <div className="space-y-8">
       <div className="space-y-4">
@@ -46,7 +28,12 @@ export default function Timeline({
             return dateB - dateA;
           })
           .map((event, index) => (
-            <EventCard event={event} key={index} regions={regions} />
+            <EventCard
+              event={event}
+              key={index}
+              regions={regions}
+              profiles={profiles}
+            />
           ))}
       </div>
       <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />

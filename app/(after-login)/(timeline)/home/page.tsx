@@ -3,26 +3,44 @@ import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
-import { NDKContext, ProfileContext, RegionContext } from "@/src/context";
+import { NDKContext, RegionContext } from "@/src/context";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
 import { Region, getRegions } from "@/src/getRegions";
 import Image from "next/image";
-import MapPage from "@/components/mapWrapper";
+import MapWrapper from "@/components/mapWrapper";
+import { NDKEventList } from "@/src/NDKEventList";
 
 export default function Home() {
-  const [messageReaded, setMessageReaded] = useState<boolean>(true);
+  const [messageReaded, setMessageReaded] = useState<boolean>(true); //ログイン時メッセージ表示可否
   const ndk = useContext(NDKContext);
-  const [filter, setFilter] = useState<NDKFilter>();
+  const [filter, setFilter] = useState<NDKFilter>(); //
   const [regions, setRegions] = useState<Region[]>([]);
-  const [profile, setProfile] = useState<any>({});
+  const [myProfile, setMyProfile] = useState<any>({});
   const [profiles, setProfiles] = useState<NDKEvent[]>([]);
-
   const [pubkey, setPubkey] = useState<string>("");
+  const [moreLoadButtonValid, setMoreLoadButtonValid] =
+    useState<boolean>(false);
+  const [timeline, setTimeline] = useState<NDKEventList>(new NDKEventList());
+
+  //タイムライン取得
+  const getEvent = async (filter: NDKFilter) => {
+    if (filter) {
+      setMoreLoadButtonValid(false);
+      setTimeline(timeline.concat(await ndk.fetchEvents(filter)));
+      setMoreLoadButtonValid(true);
+    }
+  };
+
+  //さらに読み込むボタン押下時の処理
+  const getMoreEvent = () => {
+    getEvent({ ...filter, until: timeline.until });
+  };
 
   useEffect(() => {
     const fetchdata = async () => {
+      //NIP-07によるユーザ情報取得
       const nip07signer = new NDKNip07Signer();
       const user = await nip07signer.user();
 
@@ -32,29 +50,37 @@ export default function Home() {
 
       setPubkey(user.pubkey);
 
+      //すみか情報取得
+      setRegions(await getRegions([user.pubkey]));
+
+      //kind-10002取得
       await getExplicitRelayUrls(ndk, user);
 
-      const kind1Filter: NDKFilter = {
-        kinds: [1],
-        authors: [user.pubkey],
-        limit: 10,
-      };
-
+      //kind-0取得
       const kind0Filter: NDKFilter = {
         kinds: [0],
         authors: [user.pubkey],
       };
-
       const newProfiles = await ndk.fetchEvents(kind0Filter);
       setProfiles(Array.from(newProfiles));
 
       const profileEvent = Array.from(newProfiles).find(
         (element) => element.pubkey == user.pubkey
       );
-      setProfile(profileEvent ? JSON.parse(profileEvent.content) : {});
+      setMyProfile(profileEvent ? JSON.parse(profileEvent.content) : {});
+
+      //kind-1取得
+      const kind1Filter: NDKFilter = {
+        kinds: [1],
+        authors: [user.pubkey],
+        limit: 10,
+      };
+
+      if (timeline.eventList.size < 10) {
+        await getEvent(kind1Filter);
+      }
 
       setFilter(kind1Filter);
-      setRegions(await getRegions([user.pubkey]));
     };
     setMessageReaded(localStorage.getItem("messageReaded") == "true");
     fetchdata();
@@ -93,10 +119,10 @@ export default function Home() {
       )}
 
       <div className="space-y-4">
-        {profile.picture ? (
+        {myProfile.picture ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={profile.picture}
+            src={myProfile.picture}
             alt={"avater picture"}
             width={64}
             height={64}
@@ -114,21 +140,21 @@ export default function Home() {
         )}
 
         <div>
-          {profile.display_name && (
-            <p className="font-bold">{profile.display_name}</p>
+          {myProfile.display_name && (
+            <p className="font-bold">{myProfile.display_name}</p>
           )}
           <p className="text-neutral-500 break-all">
-            @{profile.name || pubkey}
+            @{myProfile.name || pubkey}
           </p>
         </div>
 
         <div>
-          {profile.website && (
-            <a className="text-neutral-500" href={profile.website}>
-              {profile.website}
+          {myProfile.website && (
+            <a className="text-neutral-500" href={myProfile.website}>
+              {myProfile.website}
             </a>
           )}
-          {profile.about && <p>{profile.about}</p>}
+          {myProfile.about && <p>{myProfile.about}</p>}
         </div>
       </div>
 
@@ -136,16 +162,19 @@ export default function Home() {
         <h2 className="font-bold">あなたのすみか</h2>
         {regions && (
           <RegionContext.Provider value={regions[0]}>
-            <MapPage />
+            <MapWrapper />
           </RegionContext.Provider>
         )}
         <p>{regions[0]?.countryName?.ja || "どこか…"}</p>
       </div>
-      {filter && (
-        <ProfileContext.Provider value={profiles}>
-          <Timeline filter={filter} regions={regions} />
-        </ProfileContext.Provider>
-      )}
+
+      <Timeline
+        regions={regions}
+        profiles={profiles}
+        getMoreEvent={getMoreEvent}
+        timeline={timeline}
+        moreLoadButtonValid={moreLoadButtonValid}
+      />
     </div>
   );
 }

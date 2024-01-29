@@ -3,18 +3,16 @@ import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import Image from "next/image";
 import { Region } from "@/src/getRegions";
-import { useContext } from "react";
-import { ProfileContext } from "@/src/context";
 
 export default function EventCard({
   event,
   regions,
+  profiles,
 }: {
   event: NDKEvent;
   regions: Region[];
+  profiles: NDKEvent[];
 }) {
-  const profiles = useContext(ProfileContext);
-
   const profileEvent: NDKEvent | undefined = (() => {
     for (const value of profiles) {
       if (value.pubkey == event.pubkey) {
@@ -82,7 +80,7 @@ export default function EventCard({
           alt="postmark"
           className="absolute top-4 left-16"
         />
-        <p className="absolute text-sm w-[20px] text-center top-[37px] left-[86px] text-[#c30c08]">
+        <p className="absolute font-medium text-sm w-[20px] text-center top-[37px] left-[86px] text-[#c30c08]">
           {region?.countryName?.iso || "…"}
         </p>
       </Link>

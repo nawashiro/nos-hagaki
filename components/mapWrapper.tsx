@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import React from "react";
 
-function MapPage() {
+function MapWrapper() {
   const Map = React.useMemo(
     () =>
       dynamic(() => import("../components/map"), {
@@ -14,4 +14,4 @@ function MapPage() {
   return <Map />;
 }
 
-export default MapPage;
+export default MapWrapper;
