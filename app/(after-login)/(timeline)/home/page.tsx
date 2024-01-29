@@ -12,6 +12,7 @@ import Image from "next/image";
 import MapWrapper from "@/components/mapWrapper";
 import { NDKEventList } from "@/src/NDKEventList";
 import { create } from "zustand";
+import { contentStore } from "@/src/contentStore";
 
 interface State {
   filter: NDKFilter;
@@ -37,13 +38,19 @@ export default function Home() {
   const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
   const { filter, regions, myProfile, profiles, pubkey, timeline } = useStore();
 
+  const regionsPush = contentStore((state) => state.regionsPush);
+  const profilesPush = contentStore((state) => state.profilesPush);
+  const notesPush = contentStore((state) => state.notesPush);
+
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
+      const newEvent = await ndk.fetchEvents(filter);
       useStore.setState({
-        timeline: timeline.concat(await ndk.fetchEvents(filter)),
+        timeline: timeline.concat(newEvent),
       });
+      notesPush(newEvent);
       setMoreLoadButtonValid(true);
     }
   };
@@ -67,7 +74,9 @@ export default function Home() {
 
       //すみか情報取得
       if (regions.length == 0) {
-        useStore.setState({ regions: await getRegions([user.pubkey]) });
+        const newRegions = await getRegions([user.pubkey]);
+        useStore.setState({ regions: newRegions });
+        regionsPush(newRegions);
       }
 
       //kind-10002取得
@@ -84,6 +93,7 @@ export default function Home() {
         useStore.setState({
           myProfile: newProfile ? JSON.parse(newProfile.content) : {},
         });
+        profilesPush(newProfile ? new Set([newProfile]) : new Set());
       }
 
       //kind-1取得

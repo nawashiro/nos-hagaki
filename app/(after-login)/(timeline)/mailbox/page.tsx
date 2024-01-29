@@ -8,6 +8,7 @@ import Timeline from "@/components/Timeline";
 import { Region, getRegions } from "@/src/getRegions";
 import { NDKEventList } from "@/src/NDKEventList";
 import { create } from "zustand";
+import { contentStore } from "@/src/contentStore";
 
 interface State {
   filter: NDKFilter;
@@ -28,13 +29,19 @@ export default function Mailbox() {
   const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
   const { filter, regions, profiles, timeline } = useStore();
 
+  const regionsPush = contentStore((state) => state.regionsPush);
+  const profilesPush = contentStore((state) => state.profilesPush);
+  const notesPush = contentStore((state) => state.notesPush);
+
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
+      const newEvent = await ndk.fetchEvents(filter);
       useStore.setState({
-        timeline: timeline.concat(await ndk.fetchEvents(filter)),
+        timeline: timeline.concat(newEvent),
       });
+      notesPush(newEvent);
       setMoreLoadButtonValid(true);
     }
   };
@@ -71,9 +78,11 @@ export default function Mailbox() {
             kinds: [0],
             authors: follows,
           };
+          const newProfiles = await ndk.fetchEvents(kind0Filter);
           useStore.setState({
-            profiles: Array.from(await ndk.fetchEvents(kind0Filter)),
+            profiles: Array.from(newProfiles),
           });
+          profilesPush(newProfiles);
         }
 
         //kind-1取得
@@ -93,7 +102,9 @@ export default function Mailbox() {
 
         //すみか情報を取得
         if (regions.length == 0) {
-          useStore.setState({ regions: await getRegions(follows) });
+          const newRegions = await getRegions(follows);
+          useStore.setState({ regions: newRegions });
+          regionsPush(newRegions);
         }
       }
     };
