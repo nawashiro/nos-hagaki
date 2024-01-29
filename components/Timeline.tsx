@@ -1,3 +1,4 @@
+"use client";
 import { NDKFilter } from "@nostr-dev-kit/ndk";
 import EventCard from "./EventCard";
 import { NDKEventList } from "@/src/NDKEventList";

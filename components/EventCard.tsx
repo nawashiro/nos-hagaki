@@ -1,3 +1,4 @@
+"use client";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import Image from "next/image";
@@ -42,7 +43,7 @@ export default function EventCard({
               width={64}
               height={64}
               loading="lazy"
-              className="rounded-2xl bg-neutral-200"
+              className="h-16 w-16 object-cover rounded-2xl bg-neutral-200"
             />
           ) : (
             <Image

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { NDKContext, ProfileContext, RegionContext } from "@/src/context";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
 import { Region, getRegions } from "@/src/getRegions";
 import Image from "next/image";
@@ -17,7 +17,7 @@ export default function Home() {
   const [filter, setFilter] = useState<NDKFilter>();
   const [regions, setRegions] = useState<Region[]>([]);
   const [profile, setProfile] = useState<any>({});
-  const profilesContext = useContext(ProfileContext);
+  const [profiles, setProfiles] = useState<NDKEvent[]>([]);
 
   const [pubkey, setPubkey] = useState<string>("");
 
@@ -45,12 +45,12 @@ export default function Home() {
         authors: [user.pubkey],
       };
 
-      profilesContext.clear;
-      for (const value of await ndk.fetchEvents(kind0Filter)) {
-        profilesContext.add(value);
-      }
+      const newProfiles = await ndk.fetchEvents(kind0Filter);
+      setProfiles(Array.from(newProfiles));
 
-      const profileEvent = Array.from(profilesContext)[0];
+      const profileEvent = Array.from(newProfiles).find(
+        (element) => element.pubkey == user.pubkey
+      );
       setProfile(profileEvent ? JSON.parse(profileEvent.content) : {});
 
       setFilter(kind1Filter);
@@ -141,7 +141,11 @@ export default function Home() {
         )}
         <p>{regions[0]?.countryName?.ja || "どこか…"}</p>
       </div>
-      {filter && <Timeline filter={filter} regions={regions} />}
+      {filter && (
+        <ProfileContext.Provider value={profiles}>
+          <Timeline filter={filter} regions={regions} />
+        </ProfileContext.Provider>
+      )}
     </div>
   );
 }

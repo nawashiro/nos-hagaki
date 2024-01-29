@@ -2,7 +2,7 @@
 import { useContext, useEffect, useState } from "react";
 import { NDKContext, ProfileContext } from "@/src/context";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import { getFollows } from "@/src/getFollows";
 import Timeline from "@/components/Timeline";
 import { Region, getRegions } from "@/src/getRegions";
@@ -11,7 +11,7 @@ export default function Mailbox() {
   const ndk = useContext(NDKContext);
   const [filter, setFilter] = useState<NDKFilter>();
   const [regions, setRegions] = useState<Region[]>([]);
-  const profilesContext = useContext(ProfileContext);
+  const [profiles, setProfiles] = useState<NDKEvent[]>([]);
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -37,16 +37,18 @@ export default function Mailbox() {
         authors: follows,
       };
 
-      profilesContext.clear;
-      for (const value of await ndk.fetchEvents(kind0Filter)) {
-        profilesContext.add(value);
-      }
-
+      setProfiles(Array.from(await ndk.fetchEvents(kind0Filter)));
       setFilter(kind1Filter);
       setRegions(await getRegions(follows));
     };
     fetchdata();
   }, []);
 
-  return filter && <Timeline filter={filter} regions={regions} />;
+  return (
+    filter && (
+      <ProfileContext.Provider value={profiles}>
+        <Timeline filter={filter} regions={regions} />
+      </ProfileContext.Provider>
+    )
+  );
 }

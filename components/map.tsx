@@ -1,3 +1,4 @@
+"use client";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useContext } from "react";
