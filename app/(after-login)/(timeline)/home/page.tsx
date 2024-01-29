@@ -9,7 +9,6 @@ import { NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
 import { Region, getRegions } from "@/src/getRegions";
 import Image from "next/image";
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import MapPage from "@/components/mapWrapper";
 
 export default function Home() {
