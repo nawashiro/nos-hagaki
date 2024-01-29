@@ -11,24 +11,39 @@ import { Region, getRegions } from "@/src/getRegions";
 import Image from "next/image";
 import MapWrapper from "@/components/mapWrapper";
 import { NDKEventList } from "@/src/NDKEventList";
+import { create } from "zustand";
+
+interface State {
+  filter: NDKFilter;
+  regions: Region[];
+  myProfile: any;
+  profiles: NDKEvent[];
+  pubkey: string;
+  timeline: NDKEventList;
+}
+
+const useStore = create<State>((set) => ({
+  filter: {},
+  regions: [],
+  myProfile: {},
+  profiles: [],
+  pubkey: "",
+  timeline: new NDKEventList(),
+}));
 
 export default function Home() {
   const [messageReaded, setMessageReaded] = useState<boolean>(true); //ログイン時メッセージ表示可否
   const ndk = useContext(NDKContext);
-  const [filter, setFilter] = useState<NDKFilter>();
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [myProfile, setMyProfile] = useState<any>({});
-  const [profiles, setProfiles] = useState<NDKEvent[]>([]);
-  const [pubkey, setPubkey] = useState<string>("");
-  const [moreLoadButtonValid, setMoreLoadButtonValid] =
-    useState<boolean>(false);
-  const [timeline, setTimeline] = useState<NDKEventList>(new NDKEventList());
+  const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
+  const { filter, regions, myProfile, profiles, pubkey, timeline } = useStore();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
-      setTimeline(timeline.concat(await ndk.fetchEvents(filter)));
+      useStore.setState({
+        timeline: timeline.concat(await ndk.fetchEvents(filter)),
+      });
       setMoreLoadButtonValid(true);
     }
   };
@@ -48,22 +63,28 @@ export default function Home() {
         throw new Error("pubkey is false");
       }
 
-      setPubkey(user.pubkey);
+      useStore.setState({ pubkey: user.pubkey });
 
       //すみか情報取得
-      setRegions(await getRegions([user.pubkey]));
+      if (regions.length == 0) {
+        useStore.setState({ regions: await getRegions([user.pubkey]) });
+      }
 
       //kind-10002取得
       await getExplicitRelayUrls(ndk, user);
 
       //kind-0取得
-      const kind0Filter: NDKFilter = {
-        kinds: [0],
-        authors: [user.pubkey],
-      };
-      const newProfile = await ndk.fetchEvent(kind0Filter);
-      setProfiles(newProfile ? [newProfile] : []);
-      setMyProfile(newProfile ? JSON.parse(newProfile.content) : {});
+      if (profiles.length == 0) {
+        const kind0Filter: NDKFilter = {
+          kinds: [0],
+          authors: [user.pubkey],
+        };
+        const newProfile = await ndk.fetchEvent(kind0Filter);
+        useStore.setState({ profiles: newProfile ? [newProfile] : [] });
+        useStore.setState({
+          myProfile: newProfile ? JSON.parse(newProfile.content) : {},
+        });
+      }
 
       //kind-1取得
       const kind1Filter: NDKFilter = {
@@ -72,11 +93,11 @@ export default function Home() {
         limit: 10,
       };
 
-      if (timeline.eventList.size < 10) {
+      if (timeline.eventList.size == 0) {
         await getEvent(kind1Filter);
       }
 
-      setFilter(kind1Filter);
+      useStore.setState({ filter: kind1Filter });
     };
     setMessageReaded(localStorage.getItem("messageReaded") == "true");
     fetchdata();

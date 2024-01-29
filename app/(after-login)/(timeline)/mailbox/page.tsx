@@ -7,21 +7,34 @@ import { getFollows } from "@/src/getFollows";
 import Timeline from "@/components/Timeline";
 import { Region, getRegions } from "@/src/getRegions";
 import { NDKEventList } from "@/src/NDKEventList";
+import { create } from "zustand";
+
+interface State {
+  filter: NDKFilter;
+  regions: Region[];
+  profiles: NDKEvent[];
+  timeline: NDKEventList;
+}
+
+const useStore = create<State>((set) => ({
+  filter: {},
+  regions: [],
+  profiles: [],
+  timeline: new NDKEventList(),
+}));
 
 export default function Mailbox() {
   const ndk = useContext(NDKContext);
-  const [filter, setFilter] = useState<NDKFilter>();
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [profiles, setProfiles] = useState<NDKEvent[]>([]);
-  const [moreLoadButtonValid, setMoreLoadButtonValid] =
-    useState<boolean>(false);
-  const [timeline, setTimeline] = useState<NDKEventList>(new NDKEventList());
+  const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
+  const { filter, regions, profiles, timeline } = useStore();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
-      setTimeline(timeline.concat(await ndk.fetchEvents(filter)));
+      useStore.setState({
+        timeline: timeline.concat(await ndk.fetchEvents(filter)),
+      });
       setMoreLoadButtonValid(true);
     }
   };
@@ -45,30 +58,44 @@ export default function Mailbox() {
       await getExplicitRelayUrls(ndk, user);
 
       //kind-3取得
-      const follows = await getFollows(ndk, user);
+      if (
+        profiles.length == 0 &&
+        timeline.eventList.size == 0 &&
+        regions.length == 0
+      ) {
+        const follows = await getFollows(ndk, user);
 
-      //kind-0取得
-      const kind0Filter: NDKFilter = {
-        kinds: [0],
-        authors: follows,
-      };
-      setProfiles(Array.from(await ndk.fetchEvents(kind0Filter)));
+        //kind-0取得
+        if (profiles.length == 0) {
+          const kind0Filter: NDKFilter = {
+            kinds: [0],
+            authors: follows,
+          };
+          useStore.setState({
+            profiles: Array.from(await ndk.fetchEvents(kind0Filter)),
+          });
+        }
 
-      //kind-1取得
-      const kind1Filter = {
-        kinds: [1],
-        authors: follows,
-        limit: 10,
-      };
+        //kind-1取得
+        if (timeline.eventList.size == 0) {
+          const kind1Filter = {
+            kinds: [1],
+            authors: follows,
+            limit: 10,
+          };
 
-      if (timeline.eventList.size < 10) {
-        await getEvent(kind1Filter);
+          if (timeline.eventList.size < 10) {
+            await getEvent(kind1Filter);
+          }
+
+          useStore.setState({ filter: kind1Filter });
+        }
+
+        //すみか情報を取得
+        if (regions.length == 0) {
+          useStore.setState({ regions: await getRegions(follows) });
+        }
       }
-
-      setFilter(kind1Filter);
-
-      //すみか情報を取得
-      setRegions(await getRegions(follows));
     };
     fetchdata();
   }, []);
