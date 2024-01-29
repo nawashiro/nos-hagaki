@@ -61,13 +61,9 @@ export default function Home() {
         kinds: [0],
         authors: [user.pubkey],
       };
-      const newProfiles = await ndk.fetchEvents(kind0Filter);
-      setProfiles(Array.from(newProfiles));
-
-      const profileEvent = Array.from(newProfiles).find(
-        (element) => element.pubkey == user.pubkey
-      );
-      setMyProfile(profileEvent ? JSON.parse(profileEvent.content) : {});
+      const newProfile = await ndk.fetchEvent(kind0Filter);
+      setProfiles(newProfile ? [newProfile] : []);
+      setMyProfile(newProfile ? JSON.parse(newProfile.content) : {});
 
       //kind-1取得
       const kind1Filter: NDKFilter = {
