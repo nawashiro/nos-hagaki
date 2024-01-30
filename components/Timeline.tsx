@@ -36,7 +36,10 @@ export default function Timeline({
             />
           ))}
       </div>
-      <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />
+      <MoreLoadButton
+        valid={moreLoadButtonValid && timeline.eventList.size != 0}
+        onClick={getMoreEvent}
+      />
     </div>
   );
 }
