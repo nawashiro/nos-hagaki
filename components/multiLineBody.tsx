@@ -1,4 +1,8 @@
 "use client";
+
+import { Fragment } from "react";
+import { MdOutlineOpenInNew } from "react-icons/md";
+
 export const MultiLineBody = ({ body }: { body: string }) => {
   const urlPattern = new RegExp(
     "^(https?:\\/\\/)?" + // protocol
@@ -10,20 +14,35 @@ export const MultiLineBody = ({ body }: { body: string }) => {
     "i"
   ); // fragment locator
   const texts = body.split("\n").map((item, index) => {
-    if (urlPattern.test(item)) {
-      return (
-        <a href={item} key={index} className="block text-neutral-500">
-          {item}
-        </a>
-      );
-    } else {
-      return (
-        <div key={index}>
-          {item}
-          <br />
-        </div>
-      );
-    }
+    return (
+      <div key={index} className="break-words">
+        {item.split(" ").map((fragment, fragmentIndex) => {
+          if (urlPattern.test(fragment)) {
+            return (
+              <Fragment key={fragmentIndex}>
+                <a
+                  href={fragment}
+                  target="_blank"
+                  className="break-words text-neutral-400 underline hover:text-neutral-300"
+                >
+                  {fragment}
+                  <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
+                </a>
+                <> </>
+              </Fragment>
+            );
+          } else {
+            return (
+              <Fragment key={fragmentIndex}>
+                {fragment}
+                <> </>
+              </Fragment>
+            );
+          }
+        })}
+        <br />
+      </div>
+    );
   });
   return <div className="leading-9">{texts}</div>;
 };
