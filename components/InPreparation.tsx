@@ -1,6 +1,5 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { MdArrowBack } from "react-icons/md";
 
 export default function InPreparation() {
   const router = useRouter();

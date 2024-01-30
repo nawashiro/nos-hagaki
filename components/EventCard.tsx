@@ -3,7 +3,6 @@ import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import { Region } from "@/src/getRegions";
 import IconWithPostmark from "./iconWithPostmark";
-import { Content } from "next/font/google";
 
 export default function EventCard({
   event,
