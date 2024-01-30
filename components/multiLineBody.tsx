@@ -1,3 +1,4 @@
+"use client";
 export const MultiLineBody = ({ body }: { body: string }) => {
   const urlPattern = new RegExp(
     "^(https?:\\/\\/)?" + // protocol

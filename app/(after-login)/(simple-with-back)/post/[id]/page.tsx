@@ -1,6 +1,7 @@
 "use client";
 import IconWithPostmark from "@/components/iconWithPostmark";
 import { MultiLineBody } from "@/components/multiLineBody";
+import { contentStore } from "@/src/contentStore";
 import { NDKContext } from "@/src/context";
 import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
 import { Region, getRegions } from "@/src/getRegions";
@@ -12,6 +13,9 @@ export default function Post({ params }: { params: { id: string } }) {
   const [region, setRegion] = useState<Region>();
   const [kind1Event, setKind1Event] = useState<NDKEvent>();
   const [profile, setProfile] = useState<any>({});
+
+  const { notes, profiles, regions, notesPush, profilesPush, regionsPush } =
+    contentStore();
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -27,6 +31,8 @@ export default function Post({ params }: { params: { id: string } }) {
       await getExplicitRelayUrls(ndk, user);
 
       //kind-1取得
+      const note = notes.find((element) => element.id == params.id);
+
       const kind1Filter: NDKFilter = {
         kinds: [1],
         ids: [params.id],
@@ -34,7 +40,8 @@ export default function Post({ params }: { params: { id: string } }) {
       };
 
       const newKind1Event: NDKEvent | undefined =
-        (await ndk.fetchEvent(kind1Filter)) || undefined;
+        note || (await ndk.fetchEvent(kind1Filter)) || undefined;
+      notesPush(newKind1Event ? new Set([newKind1Event]) : new Set());
       setKind1Event(newKind1Event);
 
       if (!newKind1Event) {
@@ -42,16 +49,27 @@ export default function Post({ params }: { params: { id: string } }) {
       }
 
       //kind-0取得
+      const profile = profiles.find(
+        (element) => element.pubkey == newKind1Event.pubkey
+      );
+
       const kind0Filter: NDKFilter = {
         kinds: [0],
         authors: [newKind1Event.pubkey],
       };
-      const newProfile = await ndk.fetchEvent(kind0Filter);
+      const newProfile = profile || (await ndk.fetchEvent(kind0Filter));
+      profilesPush(newProfile ? new Set([newProfile]) : new Set());
       setProfile(newProfile ? JSON.parse(newProfile.content) : {});
 
       //すみか情報取得
-      setRegion((await getRegions([newKind1Event.pubkey]))[0]);
+      const region = regions.find(
+        (element) => element.pubkey == newKind1Event.pubkey
+      );
+      const newRegion = region || (await getRegions([newKind1Event.pubkey]))[0];
+      regionsPush([newRegion]);
+      setRegion(newRegion);
     };
+
     fetchdata();
   }, []);
   return (

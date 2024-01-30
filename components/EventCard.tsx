@@ -1,7 +1,6 @@
 "use client";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
-import Image from "next/image";
 import { Region } from "@/src/getRegions";
 import IconWithPostmark from "./iconWithPostmark";
 
@@ -30,7 +29,7 @@ export default function EventCard({
   return (
     <>
       <Link
-        href={`/post/${event.id}`}
+        href={{ pathname: `/post/${event.id}` }}
         className="relative block w-full p-4 rounded-2xl border-2 border-neutral-200 hover:bg-neutral-200"
       >
         <div className="space-y-4">

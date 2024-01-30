@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import {
   MdOutlineHome,
@@ -16,7 +17,7 @@ export default function RootLayout({
     <>
       <header className="p-4 flex fixed z-10 top-0 left-0 w-full backdrop-blur">
         <h1 className="font-bold">NosHagaki β</h1>
-        <HeaderLink href="#">ヘルプ</HeaderLink>
+        <HeaderLink href="/help">ヘルプ</HeaderLink>
       </header>
       <main className="px-4 py-24 min-h-screen">
         <div className="fixed z-10 inset-0 top-24 left-4 w-12 lg:w-64 space-y-4">
