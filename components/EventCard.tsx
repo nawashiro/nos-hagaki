@@ -30,7 +30,7 @@ export default function EventCard({
     <>
       <Link
         href={{ pathname: `/post/${event.id}` }}
-        className="relative block w-full p-4 rounded-2xl border-2 border-neutral-200 hover:bg-neutral-200"
+        className="relative block w-full p-4 rounded-2xl outline-2 outline outline-neutral-200 hover:bg-neutral-200"
       >
         <div className="space-y-4">
           <IconWithPostmark

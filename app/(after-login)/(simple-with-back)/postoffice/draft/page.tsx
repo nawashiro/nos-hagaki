@@ -67,15 +67,15 @@ export default function Draft() {
 
   return (
     <>
-      <div className="fixed top-4 right-4 z-20 space-x-2 flex text-neutral-500">
+      <div className="fixed top-4 right-4 z-20 space-x-4 flex">
         {saved ? (
-          <p className="px-2">保存しました</p>
+          <p>保存しました</p>
         ) : (
-          <p className="w-[112px] text-center rounded-xl bg-neutral-200">
+          <p className="w-[6rem] text-center rounded-xl bg-neutral-200">
             未保存…
           </p>
         )}
-        <p className="px-2">{textContent?.length}/1200 文字</p>
+        <p>{textContent?.length}/1200 文字</p>
         <HeaderButton>
           <MdCheck className="w-6 h-6 p-0.5" />
           確認
