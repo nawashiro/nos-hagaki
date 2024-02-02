@@ -15,7 +15,7 @@ export default function RootLayout({
         </button>
       </header>
       <main className="px-4 py-24 min-h-screen">
-        <div className="max-w-xl ml-16 md:mx-auto">{children}</div>
+        <div className="max-w-xl mx-auto">{children}</div>
       </main>
     </>
   );
