@@ -8,6 +8,42 @@ import { MdCheck } from "react-icons/md";
 export default function Draft() {
   const [textContent, setTextContent] = useState<string>();
   const textarea = useRef<HTMLTextAreaElement>(null);
+  const [timestamp, setTimestamp] = useState(Date.now());
+  const timer = useRef<NodeJS.Timeout | null>(null);
+
+  const saveText = () => {
+    if (textContent !== undefined)
+      localStorage.setItem("draft-text", textContent);
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    // textareaの値を更新
+    setTextContent(event.target.value);
+
+    // タイムスタンプを更新
+    setTimestamp(Date.now());
+
+    // タイマーがセットされていたらクリアする
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
+  };
+
+  useEffect(() => {
+    // 3秒後に保存するためのタイマーをセットする
+    timer.current = setTimeout(() => {
+      if (textContent) {
+        saveText();
+      }
+    }, 1000);
+
+    // コンポーネントがアンマウントされたときにタイマーをクリアする
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+    };
+  }, [timestamp]);
 
   useEffect(() => {
     const savedText = localStorage.getItem("draft-text");
@@ -49,16 +85,13 @@ export default function Draft() {
           <p className="text-center">がんばってます…</p>
         ) : (
           <textarea
+            value={textContent}
             maxLength={1200}
             placeholder="あのイーハトーヴォのすきとおった風、夏でも底に冷たさをもつ青いそら、うつくしい森で飾られたモリーオ市、郊外のぎらぎらひかる草の波…"
             className="w-full resize-none outline-none leading-9"
-            onChange={(e) => {
-              setTextContent(e.target.value);
-            }}
+            onChange={handleChange}
             ref={textarea}
-          >
-            {textContent}
-          </textarea>
+          />
         )}
       </div>
     </>
