@@ -10,10 +10,13 @@ export default function Draft() {
   const textarea = useRef<HTMLTextAreaElement>(null);
   const [timestamp, setTimestamp] = useState(Date.now());
   const timer = useRef<NodeJS.Timeout | null>(null);
+  const [saved, setSaved] = useState<boolean>(true);
 
   const saveText = () => {
-    if (textContent !== undefined)
+    if (textContent !== undefined) {
       localStorage.setItem("draft-text", textContent);
+      setSaved(true);
+    }
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -27,15 +30,16 @@ export default function Draft() {
     if (timer.current) {
       clearTimeout(timer.current);
     }
+
+    //保存状態をfalseに
+    setSaved(false);
   };
 
   useEffect(() => {
     // 3秒後に保存するためのタイマーをセットする
     timer.current = setTimeout(() => {
-      if (textContent) {
-        saveText();
-      }
-    }, 1000);
+      saveText();
+    }, 2000);
 
     // コンポーネントがアンマウントされたときにタイマーをクリアする
     return () => {
@@ -64,6 +68,14 @@ export default function Draft() {
   return (
     <>
       <div className="fixed top-4 right-4 z-20 space-x-2 flex text-neutral-500">
+        {saved ? (
+          <p className="px-2">保存しました</p>
+        ) : (
+          <p className="w-[112px] text-center rounded-xl bg-neutral-200">
+            未保存…
+          </p>
+        )}
+        <p className="px-2">{textContent?.length}/1200 文字</p>
         <HeaderButton>
           <MdCheck className="w-6 h-6 p-0.5" />
           確認
