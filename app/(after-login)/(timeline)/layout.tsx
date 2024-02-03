@@ -32,7 +32,7 @@ export default function RootLayout({
           </NavigationLink>
           <Link
             href={"/postoffice/draft"}
-            className="w-12 lg:w-64 h-12 flex rounded-3xl border-2 border-neutral-200 hover:bg-neutral-200"
+            className="w-12 lg:w-64 h-12 flex rounded-3xl outline-2 outline outline-neutral-200 hover:bg-neutral-200"
           >
             <p className="text-2xl m-auto text-neutral-500 hidden lg:block">
               はがきを書く

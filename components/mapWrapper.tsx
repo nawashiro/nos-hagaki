@@ -6,7 +6,7 @@ function MapWrapper() {
   const Map = React.useMemo(
     () =>
       dynamic(() => import("../components/map"), {
-        loading: () => <p>A map is loading</p>,
+        loading: () => <p>世界を見渡しています…</p>,
         ssr: false,
       }),
     []

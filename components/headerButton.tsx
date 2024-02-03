@@ -1,7 +1,7 @@
 "use client";
 import { ButtonHTMLAttributes } from "react";
 
-export default function SimpleButton({
+export default function HeaderButton({
   children,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -9,7 +9,7 @@ export default function SimpleButton({
 }) {
   return (
     <button
-      className="px-4 py-2 text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+      className="flex outline-2 outline outline-neutral-200 border-neutral-200 space-x-4 px-2 rounded-xl text-neutral-500 hover:bg-neutral-200"
       {...props}
     >
       {children}

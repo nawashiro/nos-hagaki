@@ -13,6 +13,7 @@ import MapWrapper from "@/components/mapWrapper";
 import { NDKEventList } from "@/src/NDKEventList";
 import { create } from "zustand";
 import { contentStore } from "@/src/contentStore";
+import { MdOutlineOpenInNew } from "react-icons/md";
 
 interface State {
   filter: NDKFilter;
@@ -177,9 +178,16 @@ export default function Home() {
 
         <div>
           {myProfile.website && (
-            <a className="text-neutral-500" href={myProfile.website}>
-              {myProfile.website}
-            </a>
+            <>
+              <a
+                className="break-words text-neutral-400 underline hover:text-neutral-300"
+                href={myProfile.website}
+                target="_blank"
+              >
+                {myProfile.website}
+                <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
+              </a>
+            </>
           )}
           {myProfile.about && <p>{myProfile.about}</p>}
         </div>
