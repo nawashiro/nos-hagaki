@@ -1,6 +1,8 @@
 "use client";
 
+import Dialog from "@/components/dialog";
 import HeaderButton from "@/components/headerButton";
+import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { MdCheck } from "react-icons/md";
@@ -11,6 +13,7 @@ export default function Draft() {
   const [timestamp, setTimestamp] = useState(Date.now());
   const timer = useRef<NodeJS.Timeout | null>(null);
   const [saved, setSaved] = useState<boolean>(true);
+  const [dialogViewFlag, setDialogViewFlag] = useState<boolean>(false);
 
   const saveText = () => {
     if (textContent !== undefined) {
@@ -50,6 +53,7 @@ export default function Draft() {
   }, [timestamp]);
 
   useEffect(() => {
+    setDialogViewFlag(localStorage.getItem("notice-dialog-accepted") != "true");
     const savedText = localStorage.getItem("draft-text");
     setTextContent(savedText || "");
   }, []);
@@ -67,6 +71,28 @@ export default function Draft() {
 
   return (
     <>
+      <Dialog valid={dialogViewFlag}>
+        <div className="space-y-4">
+          <h2 className="font-bold">ご注意</h2>
+          <p>大事なことが3つあるわ。操作を始める前に読んでおいてよね！</p>
+        </div>
+        <ol className="font-bold list-decimal ml-[18.27px]">
+          <li>
+            秘密を書かないでください。内容はNostrのメンションとして全世界に公開されます。
+          </li>
+          <li>都合により、お届けできない場合があります。</li>
+          <li>攻撃的なコンテンツや違法なコンテンツの投函はご遠慮ください。</li>
+        </ol>
+        <p>わかった？なら「同意する」を押してもいいんじゃない？</p>
+        <SimpleButton
+          onClick={() => {
+            setDialogViewFlag(false);
+            localStorage.setItem("notice-dialog-accepted", "true");
+          }}
+        >
+          同意する
+        </SimpleButton>
+      </Dialog>
       <div className="fixed top-4 right-4 z-20 space-x-4 flex">
         {saved ? (
           <p>保存しました</p>
