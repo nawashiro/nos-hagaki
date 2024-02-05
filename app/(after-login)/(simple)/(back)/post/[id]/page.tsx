@@ -1,76 +1,45 @@
 "use client";
 import IconWithPostmark from "@/components/iconWithPostmark";
 import { MultiLineBody } from "@/components/multiLineBody";
-import { contentStore } from "@/src/contentStore";
-import { NDKContext } from "@/src/context";
-import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { Region, getRegions } from "@/src/getRegions";
-import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
-import { useContext, useEffect, useState } from "react";
+import { FetchData } from "@/src/fetchData";
+import { Region } from "@/src/getRegions";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
+import { useEffect, useState } from "react";
 
 export default function Post({ params }: { params: { id: string } }) {
-  const ndk = useContext(NDKContext);
   const [region, setRegion] = useState<Region>();
   const [kind1Event, setKind1Event] = useState<NDKEvent>();
   const [profile, setProfile] = useState<any>({});
 
-  const { notes, profiles, regions, notesPush, profilesPush, regionsPush } =
-    contentStore();
+  const fetchdata = new FetchData();
 
   useEffect(() => {
-    const fetchdata = async () => {
+    const firstFetchData = async () => {
       //NIP-07によるユーザ情報取得
-      const nip07signer = new NDKNip07Signer();
-      const user = await nip07signer.user();
-
-      if (!user.pubkey) {
-        throw new Error("pubkey is false");
-      }
+      const user = await fetchdata.getUser();
 
       //kind-10002取得
-      await getExplicitRelayUrls(ndk, user);
+      await fetchdata.getExplicitRelayUrls(user.pubkey);
 
       //kind-1取得
-      const note = notes.find((element) => element.id == params.id);
-
-      const kind1Filter: NDKFilter = {
-        kinds: [1],
-        ids: [params.id],
-        limit: 1,
-      };
-
-      const newKind1Event: NDKEvent | undefined =
-        note || (await ndk.fetchEvent(kind1Filter)) || undefined;
-      notesPush(newKind1Event ? new Set([newKind1Event]) : new Set());
-      setKind1Event(newKind1Event);
+      const newKind1Event = await fetchdata.getAloneNote(params.id);
 
       if (!newKind1Event) {
         return;
       }
 
-      //kind-0取得
-      const profile = profiles.find(
-        (element) => element.pubkey == newKind1Event.pubkey
-      );
+      setKind1Event(newKind1Event);
 
-      const kind0Filter: NDKFilter = {
-        kinds: [0],
-        authors: [newKind1Event.pubkey],
-      };
-      const newProfile = profile || (await ndk.fetchEvent(kind0Filter));
-      profilesPush(newProfile ? new Set([newProfile]) : new Set());
+      //kind-0取得
+      const newProfile = await fetchdata.getAloneProfile(newKind1Event.pubkey);
       setProfile(newProfile ? JSON.parse(newProfile.content) : {});
 
       //すみか情報取得
-      const region = regions.find(
-        (element) => element.pubkey == newKind1Event.pubkey
-      );
-      const newRegion = region || (await getRegions([newKind1Event.pubkey]))[0];
-      regionsPush([newRegion]);
+      const newRegion = await fetchdata.getAloneRegion(newKind1Event.pubkey);
       setRegion(newRegion);
     };
 
-    fetchdata();
+    firstFetchData();
   }, []);
   return (
     <div className="space-y-8">

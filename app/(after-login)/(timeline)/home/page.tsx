@@ -2,57 +2,44 @@
 import DivCard from "@/components/divCard";
 import SimpleButton from "@/components/simpleButton";
 import Link from "next/link";
-import { useContext, useEffect, useState } from "react";
-import { NDKContext, RegionContext } from "@/src/context";
-import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
+import { useEffect, useState } from "react";
+import { RegionContext } from "@/src/context";
+import { NDKFilter } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
-import { Region, getRegions } from "@/src/getRegions";
-import Image from "next/image";
+import { Region } from "@/src/getRegions";
 import MapWrapper from "@/components/mapWrapper";
 import { NDKEventList } from "@/src/NDKEventList";
 import { create } from "zustand";
-import { contentStore } from "@/src/contentStore";
 import { MdOutlineOpenInNew } from "react-icons/md";
 import ProfileIcon from "@/components/profileIcon";
+import { FetchData } from "@/src/fetchData";
 
 interface State {
   filter: NDKFilter;
-  regions: Region[];
   myProfile: any;
-  profiles: NDKEvent[];
-  pubkey: string;
   timeline: NDKEventList;
+  region: Region | undefined;
 }
 
 const useStore = create<State>((set) => ({
   filter: {},
-  regions: [],
   myProfile: {},
-  profiles: [],
-  pubkey: "",
   timeline: new NDKEventList(),
+  region: undefined,
 }));
 
 export default function Home() {
   const [messageReaded, setMessageReaded] = useState<boolean>(true); //ログイン時メッセージ表示可否
-  const ndk = useContext(NDKContext);
   const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
-  const { filter, regions, myProfile, profiles, pubkey, timeline } = useStore();
+  const { filter, myProfile, timeline, region } = useStore();
 
-  const regionsPush = contentStore((state) => state.regionsPush);
-  const profilesPush = contentStore((state) => state.profilesPush);
-  const notesPush = contentStore((state) => state.notesPush);
+  const fetchdata = new FetchData();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
-      const newEvent = await ndk.fetchEvents(filter);
-      useStore.setState({
-        timeline: timeline.concat(newEvent),
-      });
-      notesPush(newEvent);
+      timeline.concat(await fetchdata.getNotes(filter));
       setMoreLoadButtonValid(true);
     }
   };
@@ -63,40 +50,24 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const fetchdata = async () => {
+    const fitstFetchdata = async () => {
       //NIP-07によるユーザ情報取得
-      const nip07signer = new NDKNip07Signer();
-      const user = await nip07signer.user();
-
-      if (!user.pubkey) {
-        throw new Error("pubkey is false");
-      }
-
-      useStore.setState({ pubkey: user.pubkey });
+      const user = await fetchdata.getUser();
 
       //すみか情報取得
-      if (regions.length == 0) {
-        const newRegions = await getRegions([user.pubkey]);
-        useStore.setState({ regions: newRegions });
-        regionsPush(newRegions);
-      }
+      useStore.setState({
+        region: await fetchdata.getAloneRegion(user.pubkey),
+      });
 
       //kind-10002取得
-      await getExplicitRelayUrls(ndk, user);
+      await fetchdata.getExplicitRelayUrls(user.pubkey);
 
       //kind-0取得
-      if (profiles.length == 0) {
-        const kind0Filter: NDKFilter = {
-          kinds: [0],
-          authors: [user.pubkey],
-        };
-        const newProfile = await ndk.fetchEvent(kind0Filter);
-        useStore.setState({ profiles: newProfile ? [newProfile] : [] });
-        useStore.setState({
-          myProfile: newProfile ? JSON.parse(newProfile.content) : {},
-        });
-        profilesPush(newProfile ? new Set([newProfile]) : new Set());
-      }
+      const newMyProfile = await fetchdata.getAloneProfile(user.pubkey);
+
+      useStore.setState({
+        myProfile: newMyProfile ? JSON.parse(newMyProfile.content) : {},
+      });
 
       //kind-1取得
       const kind1Filter: NDKFilter = {
@@ -112,7 +83,7 @@ export default function Home() {
       useStore.setState({ filter: kind1Filter });
     };
     setMessageReaded(localStorage.getItem("messageReaded") == "true");
-    fetchdata();
+    fitstFetchdata();
   }, []);
 
   return (
@@ -154,9 +125,11 @@ export default function Home() {
           {myProfile.display_name && (
             <p className="font-bold">{myProfile.display_name}</p>
           )}
-          <p className="text-neutral-500 break-all">
-            @{myProfile.name || pubkey}
-          </p>
+          {fetchdata.user && (
+            <p className="text-neutral-500 break-all">
+              @{myProfile.name || fetchdata.user.pubkey}
+            </p>
+          )}
         </div>
 
         <div>
@@ -178,17 +151,17 @@ export default function Home() {
 
       <div className="space-y-4">
         <h2 className="font-bold">あなたのすみか</h2>
-        {regions && (
-          <RegionContext.Provider value={regions[0]}>
+        {region && (
+          <RegionContext.Provider value={region}>
             <MapWrapper />
           </RegionContext.Provider>
         )}
-        <p>{regions[0]?.countryName?.ja || "どこか…"}</p>
+        <p>{region?.countryName?.ja || "どこか…"}</p>
       </div>
 
       <Timeline
-        regions={regions}
-        profiles={profiles}
+        regions={fetchdata.regions}
+        profiles={fetchdata.profiles}
         getMoreEvent={getMoreEvent}
         timeline={timeline}
         moreLoadButtonValid={moreLoadButtonValid}

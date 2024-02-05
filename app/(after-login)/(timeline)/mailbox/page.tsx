@@ -1,49 +1,32 @@
 "use client";
-import { useContext, useEffect, useState } from "react";
-import { NDKContext } from "@/src/context";
-import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
-import { getFollows } from "@/src/getFollows";
+import { useEffect, useState } from "react";
+import { NDKFilter } from "@nostr-dev-kit/ndk";
 import Timeline from "@/components/Timeline";
-import { Region, getRegions } from "@/src/getRegions";
 import { NDKEventList } from "@/src/NDKEventList";
 import { create } from "zustand";
-import { contentStore } from "@/src/contentStore";
+import { FetchData } from "@/src/fetchData";
 
 interface State {
   filter: NDKFilter;
-  regions: Region[];
-  profiles: NDKEvent[];
   timeline: NDKEventList;
 }
 
 const useStore = create<State>((set) => ({
   filter: {},
-  regions: [],
-  profiles: [],
   timeline: new NDKEventList(),
 }));
 
 export default function Mailbox() {
-  const ndk = useContext(NDKContext);
   const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
-  const { filter, regions, profiles, timeline } = useStore();
-  const storedFollows = contentStore((state) => state.follows);
+  const { filter, timeline } = useStore();
 
-  const regionsPush = contentStore((state) => state.regionsPush);
-  const profilesPush = contentStore((state) => state.profilesPush);
-  const notesPush = contentStore((state) => state.notesPush);
-  const followsPush = contentStore((state) => state.followsPush);
+  const fetchdata = new FetchData();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
-      const newEvent = await ndk.fetchEvents(filter);
-      useStore.setState({
-        timeline: timeline.concat(newEvent),
-      });
-      notesPush(newEvent);
+      timeline.concat(await fetchdata.getNotes(filter));
       setMoreLoadButtonValid(true);
     }
   };
@@ -54,38 +37,18 @@ export default function Mailbox() {
   };
 
   useEffect(() => {
-    const fetchdata = async () => {
+    const firstFetchData = async () => {
       //NIP-07によるユーザ情報取得
-      const nip07signer = new NDKNip07Signer();
-      const user = await nip07signer.user();
-
-      if (!user.pubkey) {
-        throw new Error("pubkey is false");
-      }
+      const user = await fetchdata.getUser();
 
       //kind-10002取得
-      await getExplicitRelayUrls(ndk, user);
-
-      let newFollows = storedFollows;
+      await fetchdata.getExplicitRelayUrls(user.pubkey);
 
       //kind-3取得
-      if (newFollows.length == 0) {
-        newFollows = await getFollows(ndk, user);
-        followsPush(newFollows);
-      }
+      const newFollows = (await fetchdata.getFollows(user.pubkey)) || [];
 
       //kind-0取得
-      if (profiles.length == 0) {
-        const kind0Filter: NDKFilter = {
-          kinds: [0],
-          authors: newFollows,
-        };
-        const newProfiles = await ndk.fetchEvents(kind0Filter);
-        useStore.setState({
-          profiles: Array.from(newProfiles),
-        });
-        profilesPush(newProfiles);
-      }
+      await fetchdata.getProfile(newFollows);
 
       //kind-1取得
       if (timeline.eventList.size == 0) {
@@ -101,19 +64,15 @@ export default function Mailbox() {
       }
 
       //すみか情報を取得
-      if (regions.length == 0) {
-        const newRegions = await getRegions(newFollows);
-        useStore.setState({ regions: newRegions });
-        regionsPush(newRegions);
-      }
+      await fetchdata.getRegionsWrapper(newFollows);
     };
-    fetchdata();
+    firstFetchData();
   }, []);
 
   return (
     <Timeline
-      regions={regions}
-      profiles={profiles}
+      regions={fetchdata.regions}
+      profiles={fetchdata.profiles}
       getMoreEvent={getMoreEvent}
       timeline={timeline}
       moreLoadButtonValid={moreLoadButtonValid}

@@ -1,14 +1,11 @@
 "use client";
 
-import { useContext, useEffect } from "react";
-import { NDKEvent, NDKFilter, NDKNip07Signer } from "@nostr-dev-kit/ndk";
-import { getExplicitRelayUrls } from "@/src/getExplicitRelayUrls";
-import { Region, getRegions } from "@/src/getRegions";
+import { useEffect } from "react";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
+import { Region } from "@/src/getRegions";
 import { create } from "zustand";
-import { NDKContext } from "@/src/context";
-import { getFollows } from "@/src/getFollows";
-import { contentStore } from "@/src/contentStore";
 import ProfileButton from "@/components/profileButton";
+import { FetchData } from "@/src/fetchData";
 
 interface State {
   regions: Region[];
@@ -23,72 +20,26 @@ const useStore = create<State>((set) => ({
 }));
 
 export default function Address() {
-  const ndk = useContext(NDKContext);
-  const { regions, profiles, follows } = useStore();
-  const regionsPush = contentStore((state) => state.regionsPush);
-  const storedRegions = contentStore((state) => state.regions);
-  const profilesPush = contentStore((state) => state.profilesPush);
-  const storedProfiles = contentStore((state) => state.profiles);
-  const followsPush = contentStore((state) => state.followsPush);
-  const storedFollows = contentStore((state) => state.follows);
+  const fetchdata = new FetchData();
 
   useEffect(() => {
-    const fetchdata = async () => {
+    const firstFetchdata = async () => {
       //NIP-07によるユーザ情報取得
-      const nip07signer = new NDKNip07Signer();
-      const user = await nip07signer.user();
-
-      if (!user.pubkey) {
-        throw new Error("pubkey is false");
-      }
+      const user = await fetchdata.getUser();
 
       //kind-10002取得
-      await getExplicitRelayUrls(ndk, user);
-
-      let newFollows = storedFollows;
+      await fetchdata.getExplicitRelayUrls(user.pubkey);
 
       //kind-3取得
-      if (newFollows.length == 0) {
-        newFollows = await getFollows(ndk, user);
-        useStore.setState({ follows: newFollows });
-        followsPush(newFollows);
-      }
+      const follows = (await fetchdata.getFollows(user.pubkey)) || [];
 
       //kind-0取得
-      let mustGetProfilePubkey: string[] = [];
-      for (const pubkey of newFollows) {
-        if (!storedProfiles.find((element) => element.pubkey == pubkey)) {
-          mustGetProfilePubkey = [...mustGetProfilePubkey, pubkey];
-        }
-      }
-      let newProfiles = new Set<NDKEvent>();
-      if (mustGetProfilePubkey.length > 0) {
-        const kind0Filter: NDKFilter = {
-          kinds: [0],
-          authors: mustGetProfilePubkey,
-        };
-        newProfiles = await ndk.fetchEvents(kind0Filter);
-      }
-      useStore.setState({
-        profiles: [...storedProfiles, ...Array.from(newProfiles)],
-      });
-      profilesPush(newProfiles);
+      await fetchdata.getProfile(follows);
 
       //すみか情報を取得
-      let mustGetRegionPubkey: string[] = [];
-      for (const pubkey of newFollows) {
-        if (!storedRegions.find((element) => element.pubkey == pubkey)) {
-          mustGetRegionPubkey = [...mustGetRegionPubkey, pubkey];
-        }
-      }
-      let newRegions: Region[] = [];
-      if (mustGetRegionPubkey.length > 0) {
-        newRegions = await getRegions(mustGetRegionPubkey);
-      }
-      useStore.setState({ regions: [...storedRegions, ...newRegions] });
-      regionsPush(newRegions);
+      await fetchdata.getRegionsWrapper(follows);
     };
-    fetchdata();
+    firstFetchdata();
   }, []);
   return (
     <div className="space-y-8">
@@ -99,11 +50,11 @@ export default function Address() {
         …べっ、別にあんたが誰をフォローしてるかなんて興味ないんだからっ！
       </p>
       <div className="space-y-4">
-        {follows.map((pubkey, index) => (
+        {fetchdata.follows.map((pubkey, index) => (
           <ProfileButton
             pubkey={pubkey}
-            profiles={profiles}
-            regions={regions}
+            profiles={fetchdata.profiles}
+            regions={fetchdata.regions}
             key={index}
           />
         ))}
