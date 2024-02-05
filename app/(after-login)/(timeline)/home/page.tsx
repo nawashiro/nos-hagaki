@@ -14,6 +14,7 @@ import { NDKEventList } from "@/src/NDKEventList";
 import { create } from "zustand";
 import { contentStore } from "@/src/contentStore";
 import { MdOutlineOpenInNew } from "react-icons/md";
+import ProfileIcon from "@/components/profileIcon";
 
 interface State {
   filter: NDKFilter;
@@ -147,25 +148,7 @@ export default function Home() {
       )}
 
       <div className="space-y-4">
-        {myProfile.picture ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={myProfile.picture}
-            alt={"avater picture"}
-            width={64}
-            height={64}
-            loading="lazy"
-            className="rounded-2xl bg-neutral-200"
-          />
-        ) : (
-          <Image
-            src="/img/default_icon.webp"
-            alt="avater picture"
-            width={64}
-            height={64}
-            className="rounded-2xl"
-          />
-        )}
+        <ProfileIcon picture={myProfile.picture} />
 
         <div>
           {myProfile.display_name && (

@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import ProfileIcon from "./profileIcon";
 
 export default function IconWithPostmark({
   picture,
@@ -10,25 +11,7 @@ export default function IconWithPostmark({
 }) {
   return (
     <div className="relative">
-      {picture ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={picture}
-          alt={"avater picture"}
-          width={64}
-          height={64}
-          loading="lazy"
-          className="h-16 w-16 object-cover rounded-2xl bg-neutral-200"
-        />
-      ) : (
-        <Image
-          src="/img/default_icon.webp"
-          alt="avater picture"
-          width={64}
-          height={64}
-          className="rounded-2xl"
-        />
-      )}
+      <ProfileIcon picture={picture} />
       <Image
         src={"/img/postmark.webp"}
         height={64}

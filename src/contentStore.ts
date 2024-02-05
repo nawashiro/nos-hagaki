@@ -7,18 +7,21 @@ interface State {
   regions: Region[];
   profiles: NDKEvent[];
   notes: NDKEvent[];
+  follows: string[];
 }
 
 interface Action {
   regionsPush: (newRegions: Region[]) => void;
   profilesPush: (newProfilesSet: Set<NDKEvent>) => void;
   notesPush: (newNotesSet: Set<NDKEvent>) => void;
+  followsPush: (newFollows: string[]) => void;
 }
 
 export const contentStore = create<State & Action>((set) => ({
   regions: [],
   profiles: [],
   notes: [],
+  follows: [],
   regionsPush: (newRegions) =>
     set((state) => ({
       regions: (() => {
@@ -59,4 +62,17 @@ export const contentStore = create<State & Action>((set) => ({
         return res;
       })(),
     })),
+  followsPush: (newFollows) => {
+    set((state) => ({
+      follows: (() => {
+        let res: string[] = [...state.follows];
+        for (const value of newFollows) {
+          if (!state.follows.find((element) => element == value)) {
+            res = [...res, value];
+          }
+        }
+        return res;
+      })(),
+    }));
+  },
 }));
