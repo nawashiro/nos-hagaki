@@ -56,6 +56,7 @@ export default function Mailbox() {
           kinds: [1],
           authors: newFollows,
           limit: 10,
+          "#p": [user.pubkey],
         };
 
         await getEvent(kind1Filter);
