@@ -2,6 +2,7 @@
 
 import Dialog from "@/components/dialog";
 import HeaderButton from "@/components/headerButton";
+import { MultiLineBody } from "@/components/multiLineBody";
 import SimpleButton from "@/components/simpleButton";
 import { FetchData } from "@/src/fetchData";
 import Link from "next/link";
@@ -19,6 +20,7 @@ export default function Draft() {
   const [addressProfile, setAddressProfile] = useState<any>();
   const fetchdata = new FetchData();
   const route = useRouter();
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const saveText = () => {
     if (textContent !== undefined) {
@@ -93,7 +95,17 @@ export default function Draft() {
   //save&confirm
   const toConfirm = () => {
     saveText();
-    route.push("./confirm");
+    if (!localStorage.getItem("draft-text")) {
+      setErrorMessage(
+        "本文の記述が無いわ。伝えたいことを書いてから、また来なさいよね！"
+      );
+    } else if (!localStorage.getItem("address-pubkey")) {
+      setErrorMessage(
+        "お届け先の指定が無いわ。「お届け先を選ぶ…」で選んでから、また来なさいよね！"
+      );
+    } else {
+      route.push("./confirm");
+    }
   };
 
   return (
@@ -118,6 +130,17 @@ export default function Draft() {
           }}
         >
           同意する
+        </SimpleButton>
+      </Dialog>
+      <Dialog valid={!!errorMessage}>
+        <h2 className="font-bold">エラー</h2>
+        <MultiLineBody body={errorMessage} />
+        <SimpleButton
+          onClick={() => {
+            setErrorMessage("");
+          }}
+        >
+          わかった
         </SimpleButton>
       </Dialog>
       <div className="fixed top-4 right-4 z-20 space-x-4 flex">
@@ -151,7 +174,7 @@ export default function Draft() {
               </div>
             </>
           ) : (
-            <p>お届け先を選んでください…</p>
+            <p>お届け先を選ぶ…</p>
           )}
         </Link>
         {textContent === undefined ? (

@@ -1,5 +1,133 @@
 "use client";
 
+import ProfileIcon from "@/components/profileIcon";
+import { FetchData } from "@/src/fetchData";
+import { Region } from "@/src/getRegions";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { RegionContext } from "@/src/context";
+import MapWrapper from "@/components/mapWrapper";
+import { MultiLineBody } from "@/components/multiLineBody";
+import DivCard from "@/components/divCard";
+
 export default function Confirm() {
-  return <></>;
+  const [addressProfile, setAddressProfile] = useState<any>();
+  const [addressRegion, setAddressRegion] = useState<Region>();
+  const [textContent, setTextContent] = useState<string>();
+  const [myProfile, setMyProfile] = useState<any>();
+  const fetchdata = new FetchData();
+  const router = useRouter();
+
+  useEffect(() => {
+    const firstFetchdata = async () => {
+      //NIP-07によるユーザ情報取得
+      const user = await fetchdata.getUser();
+
+      //kind-10002取得
+      await fetchdata.getExplicitRelayUrls(user.pubkey);
+
+      const addressNpub = localStorage.getItem("address-pubkey");
+
+      //データの存在チェック
+      if (!addressNpub) {
+        throw new Error("アドレスが指定されていません。");
+      }
+
+      const newTextContent = localStorage.getItem("draft-text");
+
+      if (!newTextContent) {
+        throw new Error("本文が空です。");
+      }
+
+      setTextContent(newTextContent);
+
+      //===お届け先===
+
+      //kind-0取得
+      const newAddressProfile = await fetchdata.getAloneProfile(addressNpub);
+      setAddressProfile(
+        newAddressProfile ? JSON.parse(newAddressProfile.content) : {}
+      );
+
+      //すみか情報を取得
+      setAddressRegion(await fetchdata.getAloneRegion(addressNpub));
+
+      //===自分===
+
+      //kind-0取得
+      const newMyProfile = await fetchdata.getAloneProfile(user.pubkey);
+      setMyProfile(newMyProfile ? JSON.parse(newMyProfile.content) : {});
+    };
+    firstFetchdata();
+  }, []);
+  return (
+    <div className="space-y-8">
+      <h2 className="text-xl font-bold">確認をする</h2>
+      <Image
+        src={"/img/m11.webp"}
+        alt="はがきを投函する様子"
+        width={640}
+        height={360}
+      />
+      <p>
+        もう投函できるわ。でもちょっと待ちなさい！
+        <br />
+        ここが内容を確認する最後のチャンスなの。誤りがあったらあんたが困るんだから、ちゃんと確認しなさい。
+        <br />
+        べっ、別にあんたのことを思って言ってるんじゃないんだからね！
+      </p>
+      <p>お届け先はこれでいいのね？</p>
+      {addressProfile && (
+        <div className="w-full p-4 rounded-2xl outline-2 outline outline-neutral-200 space-y-8">
+          <div className="space-y-4">
+            <ProfileIcon picture={addressProfile.picture} />
+            <div>
+              {addressProfile?.display_name && (
+                <p className="font-bold">{addressProfile.display_name}</p>
+              )}
+              {addressProfile?.name && (
+                <p className="text-neutral-500 break-all">
+                  @{addressProfile.name}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <p className="font-bold">すみか</p>
+            {addressRegion && (
+              <RegionContext.Provider value={addressRegion}>
+                <MapWrapper />
+              </RegionContext.Provider>
+            )}
+            <div>
+              <p>{addressRegion?.countryName?.ja || "どこか…"}</p>
+              <p>かかる日数: </p>
+            </div>
+          </div>
+        </div>
+      )}
+      <p>内容はこれでいいのね？</p>
+      {textContent && myProfile && (
+        <DivCard>
+          <ProfileIcon picture={myProfile.picture} />
+          <MultiLineBody body={textContent} />
+        </DivCard>
+      )}
+      <p>最後に、注意事項を確かめておくのよ！</p>
+      <ol className="font-bold list-decimal ml-[18.27px]">
+        <li>
+          秘密を書かないでください。
+          <br />
+          内容はNostrのメンションとして全世界に公開されます。
+        </li>
+        <li>都合により、お届けできない場合があります。</li>
+        <li>攻撃的なコンテンツや違法なコンテンツの投函はご遠慮ください。</li>
+      </ol>
+      <p>これでいいのね？なら「投函する」を押してもいいんじゃない？</p>
+      <button className="w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50">
+        投函する
+      </button>
+    </div>
+  );
 }
