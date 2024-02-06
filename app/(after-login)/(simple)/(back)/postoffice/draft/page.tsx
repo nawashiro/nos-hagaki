@@ -3,6 +3,7 @@
 import Dialog from "@/components/dialog";
 import HeaderButton from "@/components/headerButton";
 import SimpleButton from "@/components/simpleButton";
+import { FetchData } from "@/src/fetchData";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { MdCheck } from "react-icons/md";
@@ -14,6 +15,8 @@ export default function Draft() {
   const timer = useRef<NodeJS.Timeout | null>(null);
   const [saved, setSaved] = useState<boolean>(true);
   const [dialogViewFlag, setDialogViewFlag] = useState<boolean>(false);
+  const [addressProfile, setAddressProfile] = useState<any>();
+  const fetchdata = new FetchData();
 
   const saveText = () => {
     if (textContent !== undefined) {
@@ -53,9 +56,18 @@ export default function Draft() {
   }, [timestamp]);
 
   useEffect(() => {
+    const firstFetchData = async () => {
+      const addressNpub = localStorage.getItem("address-pubkey");
+      if (addressNpub) {
+        const newProfile = await fetchdata.getAloneProfile(addressNpub);
+        setAddressProfile(newProfile ? JSON.parse(newProfile.content) : {});
+      }
+    };
+
     setDialogViewFlag(localStorage.getItem("notice-dialog-accepted") != "true");
     const savedText = localStorage.getItem("draft-text");
     setTextContent(savedText || "");
+    firstFetchData();
   }, []);
 
   useEffect(() => {
@@ -113,11 +125,19 @@ export default function Draft() {
           href={"./address"}
           className="block w-full p-4 rounded-2xl border-2 border-neutral-200 hover:bg-neutral-200"
         >
-          <p>お届け先</p>
-          <div className="flex space-x-2">
-            <p className="font-bold">アイ・ボーンズ</p>
-            <p className="text-neutral-500 break-all">@i_bones</p>
-          </div>
+          {addressProfile ? (
+            <>
+              <p>お届け先</p>
+              <div className="flex space-x-2">
+                <p className="font-bold">{addressProfile.display_name}</p>
+                <p className="text-neutral-500 break-all">
+                  @{addressProfile.name}
+                </p>
+              </div>
+            </>
+          ) : (
+            <p>お届け先を選んでください…</p>
+          )}
         </Link>
         {textContent === undefined ? (
           <p className="text-center">がんばってます…</p>
