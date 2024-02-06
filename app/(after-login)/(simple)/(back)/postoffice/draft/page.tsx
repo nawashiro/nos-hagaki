@@ -5,6 +5,7 @@ import HeaderButton from "@/components/headerButton";
 import SimpleButton from "@/components/simpleButton";
 import { FetchData } from "@/src/fetchData";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { MdCheck } from "react-icons/md";
 
@@ -17,6 +18,7 @@ export default function Draft() {
   const [dialogViewFlag, setDialogViewFlag] = useState<boolean>(false);
   const [addressProfile, setAddressProfile] = useState<any>();
   const fetchdata = new FetchData();
+  const route = useRouter();
 
   const saveText = () => {
     if (textContent !== undefined) {
@@ -57,6 +59,13 @@ export default function Draft() {
 
   useEffect(() => {
     const firstFetchData = async () => {
+      //NIP-07によるユーザ情報取得
+      const user = await fetchdata.getUser();
+
+      //kind-10002取得
+      await fetchdata.getExplicitRelayUrls(user.pubkey);
+
+      //kind-0取得
       const addressNpub = localStorage.getItem("address-pubkey");
       if (addressNpub) {
         const newProfile = await fetchdata.getAloneProfile(addressNpub);
@@ -79,6 +88,12 @@ export default function Draft() {
       textarea.current.style.height = "auto";
       textarea.current.style.height = textarea.current.scrollHeight + "px";
     }
+  };
+
+  //save&confirm
+  const toConfirm = () => {
+    saveText();
+    route.push("./confirm");
   };
 
   return (
@@ -114,7 +129,7 @@ export default function Draft() {
           </p>
         )}
         <p>{textContent?.length}/1200 文字</p>
-        <HeaderButton>
+        <HeaderButton onClick={toConfirm}>
           <MdCheck className="w-6 h-6 p-0.5" />
           確認
         </HeaderButton>

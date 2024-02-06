@@ -13,6 +13,7 @@ import { create } from "zustand";
 import { MdOutlineOpenInNew } from "react-icons/md";
 import ProfileIcon from "@/components/profileIcon";
 import { FetchData } from "@/src/fetchData";
+import { useRouter } from "next/navigation";
 
 interface State {
   filter: NDKFilter;

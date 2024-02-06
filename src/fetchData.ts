@@ -250,10 +250,9 @@ export class FetchData {
       limit: 1,
     };
 
-    const newKind1Event: NDKEvent | undefined =
-      note || (await this._ndk.fetchEvent(kind1Filter)) || undefined;
+    const newKind1Event = note || (await this._ndk.fetchEvent(kind1Filter));
 
-    this.notesPush(newKind1Event ? new Set([newKind1Event]) : new Set());
+    if (newKind1Event) this.notesPush(new Set([newKind1Event]));
 
     return newKind1Event;
   }
@@ -267,14 +266,12 @@ export class FetchData {
     const kind0Filter: NDKFilter = {
       kinds: [0],
       authors: [pubkey],
+      limit: 1,
     };
 
-    const profile =
-      newProfile || (await this._ndk.fetchEvent(kind0Filter)) || undefined;
+    const profile = newProfile || (await this._ndk.fetchEvent(kind0Filter));
 
-    this.profilesPush(
-      profile ? new Set<NDKEvent>([profile]) : new Set<NDKEvent>([])
-    );
+    if (profile) this.profilesPush(new Set<NDKEvent>([profile]));
 
     return profile;
   }
