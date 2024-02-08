@@ -15,7 +15,7 @@ export const MultiLineBody = ({ body }: { body: string }) => {
   ); // fragment locator
   const texts = body.split("\n").map((item, index) => {
     return (
-      <div key={index} className="break-words">
+      <p key={index}>
         {item.split(" ").map((fragment, fragmentIndex) => {
           if (urlPattern.test(fragment)) {
             return (
@@ -23,7 +23,7 @@ export const MultiLineBody = ({ body }: { body: string }) => {
                 <a
                   href={fragment}
                   target="_blank"
-                  className="break-words text-neutral-400 underline hover:text-neutral-300"
+                  className="text-neutral-400 underline hover:text-neutral-300"
                 >
                   {fragment}
                   <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
@@ -41,8 +41,8 @@ export const MultiLineBody = ({ body }: { body: string }) => {
           }
         })}
         <br />
-      </div>
+      </p>
     );
   });
-  return <div className="leading-9">{texts}</div>;
+  return <div className="leading-9 break-words space-y-8">{texts}</div>;
 };

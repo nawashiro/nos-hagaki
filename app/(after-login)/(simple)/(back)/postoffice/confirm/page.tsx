@@ -10,6 +10,7 @@ import { RegionContext } from "@/src/context";
 import MapWrapper from "@/components/mapWrapper";
 import { MultiLineBody } from "@/components/multiLineBody";
 import DivCard from "@/components/divCard";
+import Notice from "@/components/notice";
 
 export default function Confirm() {
   const [addressProfile, setAddressProfile] = useState<any>();
@@ -115,15 +116,7 @@ export default function Confirm() {
         </DivCard>
       )}
       <p>最後に、注意事項を確かめておくのよ！</p>
-      <ol className="font-bold list-decimal ml-[18.27px]">
-        <li>
-          秘密を書かないでください。
-          <br />
-          内容はNostrのメンションとして全世界に公開されます。
-        </li>
-        <li>都合により、お届けできない場合があります。</li>
-        <li>攻撃的なコンテンツや違法なコンテンツの投函はご遠慮ください。</li>
-      </ol>
+      <Notice />
       <p>これでいいのね？なら「投函する」を押してもいいんじゃない？</p>
       <button className="w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50">
         投函する

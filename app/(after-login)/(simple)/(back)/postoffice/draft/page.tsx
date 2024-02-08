@@ -3,6 +3,7 @@
 import Dialog from "@/components/dialog";
 import HeaderButton from "@/components/headerButton";
 import { MultiLineBody } from "@/components/multiLineBody";
+import Notice from "@/components/notice";
 import SimpleButton from "@/components/simpleButton";
 import { FetchData } from "@/src/fetchData";
 import Link from "next/link";
@@ -115,13 +116,7 @@ export default function Draft() {
           <h2 className="font-bold">ご注意</h2>
           <p>大事なことが3つあるわ。操作を始める前に読んでおいてよね！</p>
         </div>
-        <ol className="font-bold list-decimal ml-[18.27px]">
-          <li>
-            秘密を書かないでください。内容はNostrのメンションとして全世界に公開されます。
-          </li>
-          <li>都合により、お届けできない場合があります。</li>
-          <li>攻撃的なコンテンツや違法なコンテンツの投函はご遠慮ください。</li>
-        </ol>
+        <Notice />
         <p>わかった？なら「同意する」を押してもいいんじゃない？</p>
         <SimpleButton
           onClick={() => {
