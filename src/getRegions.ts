@@ -3,10 +3,10 @@ import axios from "axios";
 import { CountryName, getCountryName } from "./getCountryName";
 
 export interface Region {
-  pubkey: string | null;
-  longitude: number | null;
-  latitude: number | null;
-  countryName: CountryName | null;
+  pubkey: string;
+  longitude: number;
+  latitude: number;
+  countryName: CountryName;
 }
 
 export async function getRegions(pubkeys: string[]) {

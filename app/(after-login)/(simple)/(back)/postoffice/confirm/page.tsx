@@ -18,6 +18,7 @@ export default function Confirm() {
   const [textContent, setTextContent] = useState<string>();
   const [myProfile, setMyProfile] = useState<any>();
   const fetchdata = new FetchData();
+  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<number>();
   const router = useRouter();
 
   useEffect(() => {
@@ -53,6 +54,9 @@ export default function Confirm() {
 
       //すみか情報を取得
       setAddressRegion(await fetchdata.getAloneRegion(addressNpub));
+      setEstimatedDeliveryTime(
+        await fetchdata.getEstimatedDeliveryTime(user.pubkey, addressNpub)
+      );
 
       //===自分===
 
@@ -103,7 +107,10 @@ export default function Confirm() {
             )}
             <div>
               <p>{addressRegion?.countryName?.ja || "どこか…"}</p>
-              <p>かかる日数: </p>
+              <div className="space-x-2 flex">
+                <p className="font-normal">掛かる日数:</p>
+                <p>{estimatedDeliveryTime || "…"}日</p>
+              </div>
             </div>
           </div>
         </div>

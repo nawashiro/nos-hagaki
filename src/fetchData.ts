@@ -10,6 +10,9 @@ import { Region, getRegions } from "./getRegions";
 import { create } from "zustand";
 import { NDKSingleton } from "./NDKSingleton";
 
+//528Km/dayを基準とする
+const kmPerDay = 1056;
+
 interface State {
   regions: Region[];
   profiles: NDKEvent[];
@@ -17,6 +20,7 @@ interface State {
   user: NDKUser | undefined;
   ndk: NDKSingleton;
   notes: NDKEvent[];
+  daysRequireds: { daysRequired: number; pubkey: string }[];
 }
 
 interface Action {
@@ -24,6 +28,7 @@ interface Action {
   profilesPush: (newProfilesSet: Set<NDKEvent>) => void;
   notesPush: (newNotesSet: Set<NDKEvent>) => void;
   followsPush: (newFollows: string[]) => void;
+  daysRequiredsPush: (newDaysRequired: number, newPubkey: string) => void;
 }
 
 const useStore = create<State & Action>((set) => ({
@@ -33,6 +38,7 @@ const useStore = create<State & Action>((set) => ({
   user: undefined,
   ndk: new NDKSingleton(),
   notes: [],
+  daysRequireds: [],
   regionsPush: (newRegions) =>
     set((state) => ({
       regions: (() => {
@@ -73,7 +79,7 @@ const useStore = create<State & Action>((set) => ({
         return res;
       })(),
     })),
-  followsPush: (newFollows) => {
+  followsPush: (newFollows) =>
     set((state) => ({
       follows: (() => {
         let res: string[] = [...state.follows];
@@ -84,8 +90,19 @@ const useStore = create<State & Action>((set) => ({
         }
         return res;
       })(),
-    }));
-  },
+    })),
+  daysRequiredsPush: (newDaysRequired, newPubkey) =>
+    set((state) => ({
+      daysRequireds: (() => {
+        let res = [...state.daysRequireds];
+        if (
+          !state.daysRequireds.find((element) => element.pubkey == newPubkey)
+        ) {
+          res = [...res, { daysRequired: newDaysRequired, pubkey: newPubkey }];
+        }
+        return res;
+      })(),
+    })),
 }));
 
 export class FetchData {
@@ -95,10 +112,12 @@ export class FetchData {
   private _user = useStore((state) => state.user);
   private _ndk = useStore((state) => state.ndk);
   private _notes = useStore((state) => state.notes);
+  private _daysRequireds = useStore((state) => state.daysRequireds);
   private followsPush = useStore((state) => state.followsPush);
   private profilesPush = useStore((state) => state.profilesPush);
   private regionsPush = useStore((store) => store.regionsPush);
   private notesPush = useStore((store) => store.notesPush);
+  private daysRequiredsPush = useStore((store) => store.daysRequiredsPush);
 
   get user() {
     return this._user;
@@ -118,9 +137,14 @@ export class FetchData {
 
   //NIP-07によるユーザ情報取得
   public async getUser() {
-    const nip07signer = new NDKNip07Signer();
-    const user = await nip07signer.user();
-    useStore.setState({ user: user });
+    let user = this._user;
+
+    if (!user) {
+      const nip07signer = new NDKNip07Signer();
+      user = await nip07signer.user();
+      useStore.setState({ user: user });
+    }
+
     return user;
   }
 
@@ -281,4 +305,54 @@ export class FetchData {
     const regions = await this.getRegionsWrapper([pubkey]);
     return regions.find((element) => element.pubkey == pubkey);
   }
+
+  //掛かる日数計算
+  public async getEstimatedDeliveryTime(
+    myPubkey: string,
+    addressPubkey: string
+  ) {
+    const cash = this._daysRequireds.find(
+      (element) => element.pubkey == addressPubkey
+    );
+    if (cash) {
+      return cash.daysRequired;
+    }
+
+    const myRegion = await this.getAloneRegion(myPubkey);
+    const addressRegion = await this.getAloneRegion(addressPubkey);
+
+    if (!myRegion || !addressRegion) {
+      throw new Error("どなたかが地球外にいらっしゃいます");
+    }
+
+    const cruisingDistance = distance(
+      myRegion?.latitude,
+      myRegion?.longitude,
+      addressRegion?.longitude,
+      addressRegion?.longitude
+    );
+
+    const daysRequired = Math.ceil(cruisingDistance / kmPerDay);
+    this.daysRequiredsPush(daysRequired, addressPubkey);
+
+    return daysRequired;
+  }
+}
+
+//二点間の距離Km（地球を（回転楕円体でなく）半径 6,371km の球体としたときの計算）
+
+const R = Math.PI / 180;
+
+function distance(lat1: number, lng1: number, lat2: number, lng2: number) {
+  lat1 *= R;
+  lng1 *= R;
+  lat2 *= R;
+  lng2 *= R;
+  return (
+    6371 *
+    Math.acos(
+      Math.cos(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1) +
+        Math.sin(lat1) * Math.sin(lat2)
+    )
+  );
 }

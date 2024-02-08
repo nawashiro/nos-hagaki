@@ -1,24 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { NDKEvent } from "@nostr-dev-kit/ndk";
-import { Region } from "@/src/getRegions";
-import { create } from "zustand";
 import ProfileButton from "@/components/profileButton";
 import { FetchData } from "@/src/fetchData";
 import { useRouter } from "next/navigation";
-
-interface State {
-  regions: Region[];
-  profiles: NDKEvent[];
-  follows: string[];
-}
-
-const useStore = create<State>((set) => ({
-  regions: [],
-  profiles: [],
-  follows: [],
-}));
 
 export default function Address() {
   const fetchdata = new FetchData();
@@ -60,8 +45,6 @@ export default function Address() {
         {fetchdata.follows.map((pubkey, index) => (
           <ProfileButton
             pubkey={pubkey}
-            profiles={fetchdata.profiles}
-            regions={fetchdata.regions}
             key={index}
             value={pubkey}
             onClick={(e) => addressSelect(e.currentTarget.value)}
