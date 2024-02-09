@@ -6,11 +6,11 @@ import { Region } from "@/src/getRegions";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { RegionContext } from "@/src/context";
-import MapWrapper from "@/components/mapWrapper";
+import { DoubleReagionContext } from "@/src/context";
 import { MultiLineBody } from "@/components/multiLineBody";
 import DivCard from "@/components/divCard";
 import Notice from "@/components/notice";
+import LineMapWrapper from "@/components/lineMapWrapper";
 
 export default function Confirm() {
   const [addressProfile, setAddressProfile] = useState<any>();
@@ -19,6 +19,7 @@ export default function Confirm() {
   const [myProfile, setMyProfile] = useState<any>();
   const fetchdata = new FetchData();
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<number>();
+  const [myRegion, setMyRegion] = useState<Region>();
   const router = useRouter();
 
   useEffect(() => {
@@ -63,6 +64,8 @@ export default function Confirm() {
       //kind-0取得
       const newMyProfile = await fetchdata.getAloneProfile(user.pubkey);
       setMyProfile(newMyProfile ? JSON.parse(newMyProfile.content) : {});
+
+      setMyRegion(await fetchdata.getAloneRegion(user.pubkey));
     };
     firstFetchdata();
   }, []);
@@ -99,16 +102,18 @@ export default function Confirm() {
             </div>
           </div>
           <div className="space-y-4">
-            <p className="font-bold">すみか</p>
-            {addressRegion && (
-              <RegionContext.Provider value={addressRegion}>
-                <MapWrapper />
-              </RegionContext.Provider>
+            <p className="font-bold">みちのり</p>
+            {addressRegion && myRegion && (
+              <DoubleReagionContext.Provider
+                value={{ address: addressRegion, my: myRegion }}
+              >
+                <LineMapWrapper />
+              </DoubleReagionContext.Provider>
             )}
             <div>
               <p>{addressRegion?.countryName?.ja || "どこか…"}</p>
               <div className="space-x-2 flex">
-                <p className="font-normal">掛かる日数:</p>
+                <p className="font-normal">かかる日数:</p>
                 <p>{estimatedDeliveryTime || "…"}日</p>
               </div>
             </div>

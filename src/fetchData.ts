@@ -9,8 +9,9 @@ import {
 import { Region, getRegions } from "./getRegions";
 import { create } from "zustand";
 import { NDKSingleton } from "./NDKSingleton";
+import { GeodesicLine } from "leaflet.geodesic";
 
-//528Km/dayを基準とする
+//コンテナ船の速度1056Km/dayを基準とする
 const kmPerDay = 1056;
 
 interface State {
@@ -325,34 +326,17 @@ export class FetchData {
       throw new Error("どなたかが地球外にいらっしゃいます");
     }
 
-    const cruisingDistance = distance(
-      myRegion?.latitude,
-      myRegion?.longitude,
-      addressRegion?.longitude,
-      addressRegion?.longitude
-    );
+    const line = new GeodesicLine();
 
-    const daysRequired = Math.ceil(cruisingDistance / kmPerDay);
+    const cruisingDistance =
+      line.distance(
+        [myRegion.latitude, myRegion.longitude],
+        [addressRegion.latitude, addressRegion.longitude]
+      ) / 1000; //二点間の距離Km
+
+    const daysRequired = Math.ceil(cruisingDistance / kmPerDay); //かかる時間
     this.daysRequiredsPush(daysRequired, addressPubkey);
 
     return daysRequired;
   }
-}
-
-//二点間の距離Km（地球を（回転楕円体でなく）半径 6,371km の球体としたときの計算）
-
-const R = Math.PI / 180;
-
-function distance(lat1: number, lng1: number, lat2: number, lng2: number) {
-  lat1 *= R;
-  lng1 *= R;
-  lat2 *= R;
-  lng2 *= R;
-  return (
-    6371 *
-    Math.acos(
-      Math.cos(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1) +
-        Math.sin(lat1) * Math.sin(lat2)
-    )
-  );
 }

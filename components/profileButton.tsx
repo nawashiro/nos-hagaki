@@ -54,7 +54,7 @@ export default function ProfileButton({
           <div className="text-neutral-500 ">
             <p>{region?.countryName?.ja || "どこか…"}</p>
             <div className="space-x-2 flex">
-              <p className="font-normal">掛かる日数:</p>
+              <p className="font-normal">かかる日数:</p>
               <p>{estimatedDeliveryTime || "…"}日</p>
             </div>
           </div>

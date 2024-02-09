@@ -8,6 +8,7 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { MdOutlineOpenInNew } from "react-icons/md";
+const { encode } = require("pluscodes");
 
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon.src,
@@ -17,10 +18,15 @@ L.Icon.Default.mergeOptions({
 
 const Map = () => {
   const region = useContext(RegionContext);
+  const pluscode = region
+    ? encode({
+        latitude: region.latitude,
+        longitude: region.longitude,
+      })
+    : undefined;
   return (
     region &&
-    region.latitude &&
-    region.longitude && (
+    pluscode && (
       <MapContainer
         center={[region.latitude, region.longitude]}
         zoom={3}
@@ -33,10 +39,15 @@ const Map = () => {
         />
         <Marker position={[region.latitude, region.longitude]}>
           <Popup>
-            {region.latitude}, {region.longitude} <br />{" "}
+            {region.countryName.ja}
+            <br />
+            {pluscode}
+            <br />
             <a
               className="underline hover:text-neutral-300"
-              href={`https://maps.google.com/maps?q=${region.latitude},${region.longitude}`}
+              href={`https://www.google.com/maps/place/${encodeURIComponent(
+                pluscode
+              )}`}
               target="_blank"
             >
               Googleマップ
