@@ -9,7 +9,6 @@ import {
 import { Region, getRegions } from "./getRegions";
 import { create } from "zustand";
 import { NDKSingleton } from "./NDKSingleton";
-import { GeodesicLine } from "leaflet.geodesic";
 
 //コンテナ船の速度1056Km/dayを基準とする
 const kmPerDay = 1056;
@@ -312,6 +311,8 @@ export class FetchData {
     myPubkey: string,
     addressPubkey: string
   ) {
+    const GeodesicLine = (await import("leaflet.geodesic")).GeodesicLine;
+
     const cash = this._daysRequireds.find(
       (element) => element.pubkey == addressPubkey
     );
@@ -338,5 +339,6 @@ export class FetchData {
     this.daysRequiredsPush(daysRequired, addressPubkey);
 
     return daysRequired;
+    return 0;
   }
 }
