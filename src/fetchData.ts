@@ -201,16 +201,17 @@ export class FetchData {
         return;
       }
 
-      let follows: string[] = [];
+      newFollows = [];
       for (const value of followsEvent.tags) {
         if (value[0] == "p") {
-          follows = [...follows, value[1]];
+          newFollows = [...newFollows, value[1]];
         }
       }
 
-      this.followsPush(follows);
-      return [...this._follows, ...follows];
+      this.followsPush(newFollows);
     }
+
+    return newFollows;
   }
 
   //kind-0取得
@@ -262,6 +263,15 @@ export class FetchData {
     const newEvents = await this._ndk.fetchEvents(filter);
     this.notesPush(newEvents);
     return newEvents;
+  }
+
+  //kind-1からpubkeysを取得
+  public async getPubkeysOfNotes(notes: Set<NDKEvent>) {
+    let pubkeys = new Set<string>([]);
+    for (const value of Array.from(notes)) {
+      pubkeys = new Set([...pubkeys, value.pubkey]);
+    }
+    return Array.from(pubkeys);
   }
 
   //kind-1取得 単独
@@ -339,6 +349,5 @@ export class FetchData {
     this.daysRequiredsPush(daysRequired, addressPubkey);
 
     return daysRequired;
-    return 0;
   }
 }
