@@ -11,3 +11,7 @@ body {
   color: var(--foreground-color);
   background: var(--background-color);
 }
+
+.break-phrase {
+  word-break: auto-phrase;
+}

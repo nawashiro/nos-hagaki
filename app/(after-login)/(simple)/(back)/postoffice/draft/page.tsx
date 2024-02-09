@@ -1,7 +1,13 @@
 "use client";
 
+import Dialog from "@/components/dialog";
 import HeaderButton from "@/components/headerButton";
+import { MultiLineBody } from "@/components/multiLineBody";
+import Notice from "@/components/notice";
+import SimpleButton from "@/components/simpleButton";
+import { FetchData } from "@/src/fetchData";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { MdCheck } from "react-icons/md";
 
@@ -11,6 +17,11 @@ export default function Draft() {
   const [timestamp, setTimestamp] = useState(Date.now());
   const timer = useRef<NodeJS.Timeout | null>(null);
   const [saved, setSaved] = useState<boolean>(true);
+  const [dialogViewFlag, setDialogViewFlag] = useState<boolean>(false);
+  const [addressProfile, setAddressProfile] = useState<any>();
+  const fetchdata = new FetchData();
+  const route = useRouter();
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const saveText = () => {
     if (textContent !== undefined) {
@@ -50,8 +61,25 @@ export default function Draft() {
   }, [timestamp]);
 
   useEffect(() => {
+    const firstFetchData = async () => {
+      //NIP-07によるユーザ情報取得
+      const user = await fetchdata.getUser();
+
+      //kind-10002取得
+      await fetchdata.getExplicitRelayUrls(user.pubkey);
+
+      //kind-0取得
+      const addressNpub = localStorage.getItem("address-pubkey");
+      if (addressNpub) {
+        const newProfile = await fetchdata.getAloneProfile(addressNpub);
+        setAddressProfile(newProfile ? JSON.parse(newProfile.content) : {});
+      }
+    };
+
+    setDialogViewFlag(localStorage.getItem("notice-dialog-accepted") != "true");
     const savedText = localStorage.getItem("draft-text");
     setTextContent(savedText || "");
+    firstFetchData();
   }, []);
 
   useEffect(() => {
@@ -65,8 +93,51 @@ export default function Draft() {
     }
   };
 
+  //save&confirm
+  const toConfirm = () => {
+    saveText();
+    if (!localStorage.getItem("draft-text")) {
+      setErrorMessage(
+        "本文の記述が無いわ。伝えたいことを書いてから、また来なさいよね！"
+      );
+    } else if (!localStorage.getItem("address-pubkey")) {
+      setErrorMessage(
+        "お届け先の指定が無いわ。「お届け先を選ぶ…」で選んでから、また来なさいよね！"
+      );
+    } else {
+      route.push("./confirm");
+    }
+  };
+
   return (
     <>
+      <Dialog valid={dialogViewFlag}>
+        <div className="space-y-4">
+          <h2 className="font-bold">ご注意</h2>
+          <p>大事なことが3つあるわ。操作を始める前に読んでおいてよね！</p>
+        </div>
+        <Notice />
+        <p>わかった？なら「同意する」を押してもいいんじゃない？</p>
+        <SimpleButton
+          onClick={() => {
+            setDialogViewFlag(false);
+            localStorage.setItem("notice-dialog-accepted", "true");
+          }}
+        >
+          同意する
+        </SimpleButton>
+      </Dialog>
+      <Dialog valid={!!errorMessage}>
+        <h2 className="font-bold">エラー</h2>
+        <MultiLineBody body={errorMessage} />
+        <SimpleButton
+          onClick={() => {
+            setErrorMessage("");
+          }}
+        >
+          わかった
+        </SimpleButton>
+      </Dialog>
       <div className="fixed top-4 right-4 z-20 space-x-4 flex">
         {saved ? (
           <p>保存しました</p>
@@ -76,7 +147,7 @@ export default function Draft() {
           </p>
         )}
         <p>{textContent?.length}/1200 文字</p>
-        <HeaderButton>
+        <HeaderButton onClick={toConfirm}>
           <MdCheck className="w-6 h-6 p-0.5" />
           確認
         </HeaderButton>
@@ -87,11 +158,19 @@ export default function Draft() {
           href={"./address"}
           className="block w-full p-4 rounded-2xl border-2 border-neutral-200 hover:bg-neutral-200"
         >
-          <p>お届け先</p>
-          <div className="flex space-x-2">
-            <p className="font-bold">アイ・ボーンズ</p>
-            <p className="text-neutral-500 break-all">@i_bones</p>
-          </div>
+          {addressProfile ? (
+            <>
+              <p>お届け先</p>
+              <div className="flex space-x-2">
+                <p className="font-bold">{addressProfile.display_name}</p>
+                <p className="text-neutral-500 break-all">
+                  @{addressProfile.name}
+                </p>
+              </div>
+            </>
+          ) : (
+            <p>お届け先を選ぶ…</p>
+          )}
         </Link>
         {textContent === undefined ? (
           <p className="text-center">がんばってます…</p>
