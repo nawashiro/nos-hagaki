@@ -11,6 +11,7 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import DivCard from "@/components/divCard";
 import Notice from "@/components/notice";
 import LineMapWrapper from "@/components/lineMapWrapper";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 
 export default function Confirm() {
   const [addressProfile, setAddressProfile] = useState<any>();
@@ -89,6 +90,7 @@ export default function Confirm() {
     )
       return;
 
+    //数日後のUTC22:00を設定
     const date = new Date();
     const daysRequired = await fetchdata.getEstimatedDeliveryTime(
       fetchdata.user.pubkey,
@@ -103,7 +105,8 @@ export default function Confirm() {
 
     const createdAt = Math.floor(date.getTime() / 1000);
 
-    const signedEvent = await window.nostr.signEvent({
+    //署名
+    const sign = await window.nostr.signEvent({
       kind: 1,
       content: textContent,
       pubkey: pubkey,
@@ -111,7 +114,15 @@ export default function Confirm() {
       tags: [["p", addressNpub]],
     });
 
-    console.log(signedEvent);
+    let signedEvent = new NDKEvent();
+    signedEvent.kind = 1;
+    signedEvent.content = textContent;
+    signedEvent.pubkey = pubkey;
+    signedEvent.created_at = createdAt;
+    signedEvent.tags = [["p", addressNpub]];
+    signedEvent.sig = sign.sig;
+
+    //const res = await fetchdata.publish(signedEvent);
   };
 
   return (
