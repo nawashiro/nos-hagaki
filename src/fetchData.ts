@@ -36,7 +36,7 @@ const useStore = create<State & Action>((set) => ({
   profiles: [],
   follows: [],
   user: undefined,
-  ndk: new NDKSingleton(),
+  ndk: NDKSingleton.instance,
   notes: [],
   daysRequireds: [],
   regionsPush: (newRegions) =>
