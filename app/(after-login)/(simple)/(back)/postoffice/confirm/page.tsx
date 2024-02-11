@@ -11,6 +11,7 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import DivCard from "@/components/divCard";
 import Notice from "@/components/notice";
 import LineMapWrapper from "@/components/lineMapWrapper";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 
 export default function Confirm() {
   const [addressProfile, setAddressProfile] = useState<any>();
@@ -20,27 +21,36 @@ export default function Confirm() {
   const fetchdata = new FetchData();
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<number>();
   const [myRegion, setMyRegion] = useState<Region>();
-  const router = useRouter();
+  const [pubkey, setPubkey] = useState<string>();
+  const [addressNpub, setAddressNpub] = useState<string>();
 
   useEffect(() => {
     const firstFetchdata = async () => {
       //NIP-07によるユーザ情報取得
       const user = await fetchdata.getUser();
+      setPubkey(user.pubkey);
 
       //kind-10002取得
       await fetchdata.getExplicitRelayUrls(user.pubkey);
 
+      //データの存在チェック
+
       const addressNpub = localStorage.getItem("address-pubkey");
 
-      //データの存在チェック
       if (!addressNpub) {
         throw new Error("アドレスが指定されていません。");
       }
+
+      setAddressNpub(addressNpub);
 
       const newTextContent = localStorage.getItem("draft-text");
 
       if (!newTextContent) {
         throw new Error("本文が空です。");
+      }
+
+      if (newTextContent.length > 1200) {
+        throw new Error("本文を1200文字以下にしてください。");
       }
 
       setTextContent(newTextContent);
@@ -69,6 +79,52 @@ export default function Confirm() {
     };
     firstFetchdata();
   }, []);
+
+  const publish = async () => {
+    if (
+      !window.nostr ||
+      !pubkey ||
+      !textContent ||
+      !addressNpub ||
+      !fetchdata.user?.pubkey
+    )
+      return;
+
+    //数日後のUTC22:00を設定
+    const date = new Date();
+    const daysRequired = await fetchdata.getEstimatedDeliveryTime(
+      fetchdata.user.pubkey,
+      addressNpub
+    );
+
+    date.setUTCDate(date.getUTCDate() + daysRequired);
+    date.setUTCHours(22);
+    date.setUTCMinutes(0);
+    date.setUTCSeconds(0);
+    date.setUTCMilliseconds(0);
+
+    const createdAt = Math.floor(date.getTime() / 1000);
+
+    //署名
+    const sign = await window.nostr.signEvent({
+      kind: 1,
+      content: textContent,
+      pubkey: pubkey,
+      created_at: createdAt,
+      tags: [["p", addressNpub]],
+    });
+
+    let signedEvent = new NDKEvent();
+    signedEvent.kind = 1;
+    signedEvent.content = textContent;
+    signedEvent.pubkey = pubkey;
+    signedEvent.created_at = createdAt;
+    signedEvent.tags = [["p", addressNpub]];
+    signedEvent.sig = sign.sig;
+
+    //const res = await fetchdata.publish(signedEvent);
+  };
+
   return (
     <div className="space-y-8">
       <h2 className="text-xl font-bold">確認をする</h2>
@@ -130,7 +186,10 @@ export default function Confirm() {
       <p>最後に、注意事項を確かめておくのよ！</p>
       <Notice />
       <p>これでいいのね？なら「投函する」を押してもいいんじゃない？</p>
-      <button className="w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50">
+      <button
+        onClick={publish}
+        className="w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50"
+      >
         投函する
       </button>
     </div>

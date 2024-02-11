@@ -4,6 +4,8 @@ import {
   NDKEvent,
   NDKFilter,
   NDKNip07Signer,
+  NDKRelay,
+  NDKRelaySet,
   NDKUser,
 } from "@nostr-dev-kit/ndk";
 import { Region, getRegions } from "./getRegions";
@@ -21,6 +23,7 @@ interface State {
   ndk: NDKSingleton;
   notes: NDKEvent[];
   daysRequireds: { daysRequired: number; pubkey: string }[];
+  outboxRelays: string[];
 }
 
 interface Action {
@@ -36,9 +39,10 @@ const useStore = create<State & Action>((set) => ({
   profiles: [],
   follows: [],
   user: undefined,
-  ndk: new NDKSingleton(),
+  ndk: NDKSingleton.instance,
   notes: [],
   daysRequireds: [],
+  outboxRelays: [],
   regionsPush: (newRegions) =>
     set((state) => ({
       regions: (() => {
@@ -113,6 +117,7 @@ export class FetchData {
   private _ndk = useStore((state) => state.ndk);
   private _notes = useStore((state) => state.notes);
   private _daysRequireds = useStore((state) => state.daysRequireds);
+  private _outboxRelays = useStore((state) => state.outboxRelays);
   private followsPush = useStore((state) => state.followsPush);
   private profilesPush = useStore((state) => state.profilesPush);
   private regionsPush = useStore((store) => store.regionsPush);
@@ -134,6 +139,11 @@ export class FetchData {
   get regions() {
     return this._regions;
   }
+
+  public publish = async (event: NDKEvent) => {
+    event.ndk = this._ndk;
+    return await event.publish();
+  };
 
   //NIP-07によるユーザ情報取得
   public async getUser() {
@@ -173,6 +183,7 @@ export class FetchData {
         return;
       }
 
+      //ndk.explicitRelayUrlsを設定
       let explicitRelayUrls: string[] = [];
       for (const value of explicitRelayUrlsEvent.tags) {
         if (value[0] == "r") {
@@ -180,6 +191,15 @@ export class FetchData {
         }
       }
       this._ndk.explicitRelayUrls = explicitRelayUrls;
+
+      //outboxを設定
+      let outboxRelayUrls: string[] = [];
+      for (const value of explicitRelayUrlsEvent.tags) {
+        if (value[0] == "r" && (2 in value ? value[2] == "write" : true)) {
+          outboxRelayUrls = [...outboxRelayUrls, value[1]];
+        }
+      }
+      useStore.setState({ outboxRelays: outboxRelayUrls });
     }
   }
 
@@ -201,16 +221,17 @@ export class FetchData {
         return;
       }
 
-      let follows: string[] = [];
+      newFollows = [];
       for (const value of followsEvent.tags) {
         if (value[0] == "p") {
-          follows = [...follows, value[1]];
+          newFollows = [...newFollows, value[1]];
         }
       }
 
-      this.followsPush(follows);
-      return [...this._follows, ...follows];
+      this.followsPush(newFollows);
     }
+
+    return newFollows;
   }
 
   //kind-0取得
@@ -262,6 +283,15 @@ export class FetchData {
     const newEvents = await this._ndk.fetchEvents(filter);
     this.notesPush(newEvents);
     return newEvents;
+  }
+
+  //kind-1からpubkeysを取得
+  public async getPubkeysOfNotes(notes: Set<NDKEvent>) {
+    let pubkeys = new Set<string>([]);
+    for (const value of Array.from(notes)) {
+      pubkeys = new Set([...pubkeys, value.pubkey]);
+    }
+    return Array.from(pubkeys);
   }
 
   //kind-1取得 単独
@@ -339,6 +369,5 @@ export class FetchData {
     this.daysRequiredsPush(daysRequired, addressPubkey);
 
     return daysRequired;
-    return 0;
   }
 }

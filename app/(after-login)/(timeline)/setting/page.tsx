@@ -6,6 +6,17 @@ export default function Setting() {
   const router = useRouter();
   const logout = () => {
     localStorage.clear();
+
+    const request = indexedDB.deleteDatabase("ndk-cache"); // データベース名(testDB)に接続
+
+    request.onsuccess = () => {
+      console.log("DB successfully deleted");
+    };
+
+    request.onerror = () => {
+      throw new Error("DBの削除に失敗しました");
+    };
+
     router.push("/");
   };
 

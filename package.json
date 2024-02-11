@@ -12,6 +12,7 @@
     "@nostr-dev-kit/ndk": "^2.3.3",
     "@nostr-dev-kit/ndk-cache-dexie": "^2.2.4",
     "@tailwindcss/line-clamp": "^0.4.4",
+    "@vercel/kv": "^1.0.1",
     "axios": "^1.6.7",
     "leaflet": "^1.9.4",
     "leaflet.geodesic": "^2.7.1",

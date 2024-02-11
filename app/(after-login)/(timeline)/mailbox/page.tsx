@@ -26,8 +26,21 @@ export default function Mailbox() {
   const getEvent = async (filter: NDKFilter) => {
     if (filter) {
       setMoreLoadButtonValid(false);
-      timeline.concat(await fetchdata.getNotes(filter));
+      //kind-01を取得
+      const kind0Set = await fetchdata.getNotes(filter);
+      timeline.concat(kind0Set);
       setMoreLoadButtonValid(true);
+
+      //pubkeyをkint-01から抽出
+      const pubkeys = await fetchdata.getPubkeysOfNotes(kind0Set);
+
+      //kind-0取得
+      await fetchdata.getProfile(pubkeys);
+
+      //すみか情報を取得
+      await fetchdata.getRegionsWrapper(pubkeys);
+    } else {
+      return [];
     }
   };
 
@@ -44,17 +57,10 @@ export default function Mailbox() {
       //kind-10002取得
       await fetchdata.getExplicitRelayUrls(user.pubkey);
 
-      //kind-3取得
-      const newFollows = (await fetchdata.getFollows(user.pubkey)) || [];
-
-      //kind-0取得
-      await fetchdata.getProfile(newFollows);
-
       //kind-1取得
       if (timeline.eventList.size == 0) {
         const kind1Filter = {
           kinds: [1],
-          authors: newFollows,
           limit: 10,
           "#p": [user.pubkey],
         };
@@ -63,9 +69,6 @@ export default function Mailbox() {
 
         useStore.setState({ filter: kind1Filter });
       }
-
-      //すみか情報を取得
-      await fetchdata.getRegionsWrapper(newFollows);
     };
     firstFetchData();
   }, []);
