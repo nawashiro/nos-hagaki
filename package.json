@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@nostr-dev-kit/ndk": "^2.3.3",
     "@nostr-dev-kit/ndk-cache-dexie": "^2.2.4",
+    "@prisma/client": "^5.9.1",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@vercel/kv": "^1.0.1",
     "@vercel/postgres": "^0.7.2",
@@ -21,6 +22,7 @@
     "nostr-tools": "^2.1.5",
     "pluscodes": "^2.6.0",
     "point-in-polygon": "^1.1.0",
+    "prisma": "^5.9.1",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.0.1",
