@@ -4,8 +4,6 @@ import {
   NDKEvent,
   NDKFilter,
   NDKNip07Signer,
-  NDKRelay,
-  NDKRelaySet,
   NDKUser,
 } from "@nostr-dev-kit/ndk";
 import { Region, getRegions } from "./getRegions";
@@ -138,6 +136,10 @@ export class FetchData {
 
   get regions() {
     return this._regions;
+  }
+
+  get outboxRelays() {
+    return this._outboxRelays;
   }
 
   public publish = async (event: NDKEvent) => {

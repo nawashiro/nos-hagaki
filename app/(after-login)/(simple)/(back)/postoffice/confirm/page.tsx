@@ -11,7 +11,7 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import DivCard from "@/components/divCard";
 import Notice from "@/components/notice";
 import LineMapWrapper from "@/components/lineMapWrapper";
-import { NDKEvent } from "@nostr-dev-kit/ndk";
+import { getEventHash } from "nostr-tools";
 
 export default function Confirm() {
   const [addressProfile, setAddressProfile] = useState<any>();
@@ -105,24 +105,37 @@ export default function Confirm() {
 
     const createdAt = Math.floor(date.getTime() / 1000);
 
-    //署名
-    const sign = await window.nostr.signEvent({
+    const raw = {
       kind: 1,
       content: textContent,
       pubkey: pubkey,
       created_at: createdAt,
       tags: [["p", addressNpub]],
+    };
+
+    //署名する
+    const sign = await window.nostr.signEvent(raw);
+    const id = getEventHash(raw);
+
+    const signed = {
+      ...raw,
+      sig: sign.sig,
+      id: id,
+    };
+
+    const signedObject = {
+      outbox: fetchdata.outboxRelays,
+      event: signed,
+    };
+
+    const res = await fetch("/api/post-insert", {
+      method: "POST",
+      body: JSON.stringify(signedObject),
     });
 
-    let signedEvent = new NDKEvent();
-    signedEvent.kind = 1;
-    signedEvent.content = textContent;
-    signedEvent.pubkey = pubkey;
-    signedEvent.created_at = createdAt;
-    signedEvent.tags = [["p", addressNpub]];
-    signedEvent.sig = sign.sig;
-
-    //const res = await fetchdata.publish(signedEvent);
+    if (res.status != 200) {
+      throw new Error(`${res.status} Error`);
+    }
   };
 
   return (
