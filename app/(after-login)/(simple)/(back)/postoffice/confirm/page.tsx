@@ -23,6 +23,7 @@ export default function Confirm() {
   const [myRegion, setMyRegion] = useState<Region>();
   const [pubkey, setPubkey] = useState<string>();
   const [addressNpub, setAddressNpub] = useState<string>();
+  const route = useRouter();
 
   useEffect(() => {
     const firstFetchdata = async () => {
@@ -136,6 +137,8 @@ export default function Confirm() {
     if (res.status != 200) {
       throw new Error(`${res.status} Error`);
     }
+
+    route.push("./complete");
   };
 
   return (
