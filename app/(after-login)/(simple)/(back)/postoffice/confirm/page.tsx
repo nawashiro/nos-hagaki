@@ -138,7 +138,10 @@ export default function Confirm() {
       throw new Error(`${res.status} Error`);
     }
 
-    route.push("./complete");
+    localStorage.removeItem("address-pubkey");
+    localStorage.removeItem("draft-text");
+
+    route.push(`./complete/${signedObject.event.id}`);
   };
 
   return (

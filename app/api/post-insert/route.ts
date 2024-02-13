@@ -3,6 +3,8 @@
 import { verifyEvent } from "nostr-tools";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest } from "next/server";
+import { getIp } from "@/src/getIp";
+import { redis } from "@/src/redisUtil";
 
 const prisma = new PrismaClient();
 
@@ -58,14 +60,14 @@ const dbInsert = async (res: SignedObject, ip: string) => {
   });
 };
 
-//ip取得
-const getIp = (req: NextRequest) => {
-  let ip = req.ip ?? req.headers.get("x-real-ip") ?? "";
-  const forwardedFor = req.headers.get("x-forwarded-for");
-  if (!ip && forwardedFor) {
-    ip = forwardedFor.split(",").at(0) ?? "Unknown";
-  }
-  return ip;
+//投函済みページ用データインサート
+const submittedDataSet = async (res: SignedObject, ip: string) => {
+  const id = `event-${res.event.id}`;
+  await redis.hset(id, {
+    sendAt: res.event.created_at,
+    ip: ip,
+  });
+  await redis.expire(id, 60 * 5);
 };
 
 export async function POST(req: NextRequest) {
@@ -76,10 +78,16 @@ export async function POST(req: NextRequest) {
     validation(res);
   } catch (e) {
     console.log(e);
-    return new Response(`Unprocessable Entity`, { status: 422 });
+    return new Response("Unprocessable Entity", { status: 422 });
   }
 
-  await dbInsert(res, ip);
+  try {
+    await dbInsert(res, ip);
+    await submittedDataSet(res, ip);
+  } catch (e) {
+    console.log(e);
+    return new Response("Internal server error", { status: 500 });
+  }
 
   return new Response("ok", { status: 200 });
 }
