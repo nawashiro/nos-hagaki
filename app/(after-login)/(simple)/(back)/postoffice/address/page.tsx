@@ -12,7 +12,16 @@ export default function Address() {
   useEffect(() => {
     const firstFetchdata = async () => {
       //NIP-07によるユーザ情報取得
-      const user = await fetchdata.getUser();
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
 
       //kind-10002取得
       await fetchdata.getExplicitRelayUrls(user.pubkey);

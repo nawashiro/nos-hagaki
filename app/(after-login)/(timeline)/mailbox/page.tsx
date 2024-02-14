@@ -5,6 +5,7 @@ import Timeline from "@/components/Timeline";
 import { NDKEventList } from "@/src/NDKEventList";
 import { create } from "zustand";
 import { FetchData } from "@/src/fetchData";
+import { useRouter } from "next/navigation";
 
 interface State {
   filter: NDKFilter;
@@ -21,6 +22,7 @@ export default function Mailbox() {
   const { filter, timeline } = useStore();
 
   const fetchdata = new FetchData();
+  const router = useRouter();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
@@ -52,7 +54,16 @@ export default function Mailbox() {
   useEffect(() => {
     const firstFetchData = async () => {
       //NIP-07によるユーザ情報取得
-      const user = await fetchdata.getUser();
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
 
       //kind-10002取得
       await fetchdata.getExplicitRelayUrls(user.pubkey);

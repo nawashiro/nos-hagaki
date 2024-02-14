@@ -13,6 +13,7 @@ import { create } from "zustand";
 import { MdOutlineOpenInNew } from "react-icons/md";
 import ProfileIcon from "@/components/profileIcon";
 import { FetchData } from "@/src/fetchData";
+import { useRouter } from "next/navigation";
 
 interface State {
   filter: NDKFilter;
@@ -34,6 +35,7 @@ export default function Home() {
   const { filter, myProfile, timeline, region } = useStore();
 
   const fetchdata = new FetchData();
+  const router = useRouter();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
@@ -52,7 +54,16 @@ export default function Home() {
   useEffect(() => {
     const fitstFetchdata = async () => {
       //NIP-07によるユーザ情報取得
-      const user = await fetchdata.getUser();
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
 
       //すみか情報取得
       useStore.setState({

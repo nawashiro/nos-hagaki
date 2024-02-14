@@ -4,6 +4,8 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import { FetchData } from "@/src/fetchData";
 import { Region } from "@/src/getRegions";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
 
@@ -13,11 +15,21 @@ export default function Post({ params }: { params: { id: string } }) {
   const [profile, setProfile] = useState<any>({});
 
   const fetchdata = new FetchData();
+  const router = useRouter();
 
   useEffect(() => {
     const firstFetchData = async () => {
       //NIP-07によるユーザ情報取得
-      const user = await fetchdata.getUser();
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
 
       //kind-10002取得
       await fetchdata.getExplicitRelayUrls(user.pubkey);

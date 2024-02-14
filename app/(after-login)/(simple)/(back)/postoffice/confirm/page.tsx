@@ -28,12 +28,21 @@ export default function Confirm() {
   const [pubkey, setPubkey] = useState<string>();
   const [addressNpub, setAddressNpub] = useState<string>();
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const route = useRouter();
+  const router = useRouter();
 
   useEffect(() => {
     const firstFetchdata = async () => {
       //NIP-07によるユーザ情報取得
-      const user = await fetchdata.getUser();
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
       setPubkey(user.pubkey);
 
       //kind-10002取得
@@ -154,7 +163,7 @@ export default function Confirm() {
     localStorage.removeItem("address-pubkey");
     localStorage.removeItem("draft-text");
 
-    route.push(`./complete/${signedObject.event.id}`);
+    router.push(`./complete/${signedObject.event.id}`);
   };
 
   return (

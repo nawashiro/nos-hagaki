@@ -7,6 +7,7 @@ import SimpleButton from "@/components/simpleButton";
 import { FetchData } from "@/src/fetchData";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
 
@@ -18,6 +19,7 @@ export default function Complete({ params }: { params: { id: string } }) {
   const [pubkey, setPubkey] = useState<string>();
   const fetchdata = new FetchData();
   const [messageSubmitted, setMessageSubmitted] = useState<string>();
+  const router = useRouter();
 
   useEffect(() => {
     const firstFetch = async () => {
@@ -38,7 +40,17 @@ export default function Complete({ params }: { params: { id: string } }) {
       setDateString(dateString);
 
       //NIP-07によるユーザ情報取得
-      const user = await fetchdata.getUser();
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
+
       setPubkey(user.pubkey);
 
       //kind-10002取得
