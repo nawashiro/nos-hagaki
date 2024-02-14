@@ -6,8 +6,10 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import Notice from "@/components/notice";
 import SimpleButton from "@/components/simpleButton";
 import { FetchData } from "@/src/fetchData";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { nip19 } from "nostr-tools";
 import { useEffect, useRef, useState } from "react";
 import { MdCheck } from "react-icons/md";
 
@@ -22,6 +24,7 @@ export default function Draft() {
   const fetchdata = new FetchData();
   const route = useRouter();
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [addresProfileEvent, setAddressProfileEvent] = useState<NDKEvent>();
 
   const saveText = () => {
     if (textContent !== undefined) {
@@ -72,6 +75,7 @@ export default function Draft() {
       const addressNpub = localStorage.getItem("address-pubkey");
       if (addressNpub) {
         const newProfile = await fetchdata.getAloneProfile(addressNpub);
+        newProfile && setAddressProfileEvent(newProfile);
         setAddressProfile(newProfile ? JSON.parse(newProfile.content) : {});
       }
     };
@@ -163,9 +167,13 @@ export default function Draft() {
               <p>お届け先</p>
               <div className="flex space-x-2">
                 <p className="font-bold">{addressProfile.display_name}</p>
-                <p className="text-neutral-500 break-all">
-                  @{addressProfile.name}
-                </p>
+                {addresProfileEvent && (
+                  <p className="text-neutral-500 break-all">
+                    @
+                    {addressProfile.name ||
+                      nip19.npubEncode(addresProfileEvent.pubkey)}
+                  </p>
+                )}
               </div>
             </>
           ) : (

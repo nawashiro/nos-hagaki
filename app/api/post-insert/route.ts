@@ -66,6 +66,7 @@ const submittedDataSet = async (res: SignedObject, ip: string) => {
   await redis.hset(id, {
     sendAt: res.event.created_at,
     ip: ip,
+    address: res.event.tags[0][1],
   });
   await redis.expire(id, 60 * 5);
 };

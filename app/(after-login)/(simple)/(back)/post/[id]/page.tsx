@@ -4,6 +4,7 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import { FetchData } from "@/src/fetchData";
 import { Region } from "@/src/getRegions";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
+import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
 
 export default function Post({ params }: { params: { id: string } }) {
@@ -57,7 +58,7 @@ export default function Post({ params }: { params: { id: string } }) {
                 <p className="font-bold">{profile.display_name}</p>
               )}
               <p className="text-neutral-500 break-all">
-                @{profile.name || kind1Event.pubkey}
+                @{profile.name || nip19.npubEncode(kind1Event.pubkey)}
               </p>
             </div>
             <p className="text-neutral-500">

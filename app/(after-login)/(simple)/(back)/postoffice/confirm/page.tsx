@@ -11,10 +11,12 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import DivCard from "@/components/divCard";
 import Notice from "@/components/notice";
 import LineMapWrapper from "@/components/lineMapWrapper";
-import { getEventHash } from "nostr-tools";
+import { getEventHash, nip19 } from "nostr-tools";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 
 export default function Confirm() {
   const [addressProfile, setAddressProfile] = useState<any>();
+  const [addresProfileEvent, setAddressProfileEvent] = useState<NDKEvent>();
   const [addressRegion, setAddressRegion] = useState<Region>();
   const [textContent, setTextContent] = useState<string>();
   const [myProfile, setMyProfile] = useState<any>();
@@ -60,6 +62,7 @@ export default function Confirm() {
 
       //kind-0取得
       const newAddressProfile = await fetchdata.getAloneProfile(addressNpub);
+      newAddressProfile && setAddressProfileEvent(newAddressProfile);
       setAddressProfile(
         newAddressProfile ? JSON.parse(newAddressProfile.content) : {}
       );
@@ -169,9 +172,11 @@ export default function Confirm() {
               {addressProfile?.display_name && (
                 <p className="font-bold">{addressProfile.display_name}</p>
               )}
-              {addressProfile?.name && (
+              {addresProfileEvent && (
                 <p className="text-neutral-500 break-all">
-                  @{addressProfile.name}
+                  @
+                  {addressProfile.name ||
+                    nip19.npubEncode(addresProfileEvent.pubkey)}
                 </p>
               )}
             </div>

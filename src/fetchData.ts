@@ -153,6 +153,7 @@ export class FetchData {
 
     if (!user) {
       const nip07signer = new NDKNip07Signer();
+      this._ndk.signer = nip07signer;
       user = await nip07signer.user();
       useStore.setState({ user: user });
     }

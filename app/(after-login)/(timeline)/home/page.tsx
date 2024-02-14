@@ -110,7 +110,7 @@ export default function Home() {
             </SimpleButton>
             <Link
               href={"/help"}
-              className="px-4 py-2 text-neutral-500 border-2 border-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+              className="px-4 py-2 text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
             >
               ヘルプを見る
             </Link>
@@ -127,7 +127,7 @@ export default function Home() {
           )}
           {fetchdata.user && (
             <p className="text-neutral-500 break-all">
-              @{myProfile.name || fetchdata.user.pubkey}
+              @{myProfile.name || fetchdata.user.npub}
             </p>
           )}
         </div>
