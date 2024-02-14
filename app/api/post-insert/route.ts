@@ -58,6 +58,22 @@ const validation = (res: SignedObject) => {
     )
   )
     throw new Error("時刻が不正です");
+
+  const urlPattern = new RegExp(
+    "^(wss?:\\/\\/)?" + // protocol
+      "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name and extension
+      "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+      "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+      "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+      "(\\#[-a-z\\d_]*)?$",
+    "i"
+  ); // fragment locator
+
+  for (const value of res.outbox) {
+    if (!urlPattern.test(value)) {
+      throw Error("WebSocketサーバーurlが不正です");
+    }
+  }
 };
 
 //インサート
