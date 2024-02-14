@@ -132,14 +132,17 @@ export default function Draft() {
         </div>
         <Notice />
         <p>わかった？なら「同意する」を押してもいいんじゃない？</p>
-        <SimpleButton
-          onClick={() => {
-            setDialogViewFlag(false);
-            localStorage.setItem("notice-dialog-accepted", "true");
-          }}
-        >
-          同意する
-        </SimpleButton>
+        <div className="flex space-x-4">
+          <SimpleButton
+            onClick={() => {
+              setDialogViewFlag(false);
+              localStorage.setItem("notice-dialog-accepted", "true");
+            }}
+          >
+            同意する
+          </SimpleButton>
+          <SimpleButton onClick={router.back}>同意しない</SimpleButton>
+        </div>
       </Dialog>
       <Dialog valid={!!errorMessage}>
         <h2 className="font-bold">エラー</h2>
