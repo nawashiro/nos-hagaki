@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { getIp } from "@/src/getIp";
 import { redis } from "@/src/redisUtil";
+import { Ratelimit } from "@upstash/ratelimit";
 
 const prisma = new PrismaClient();
 
@@ -21,6 +22,12 @@ interface SignedObject {
   };
 }
 
+//レートリミット
+const ratelimit = new Ratelimit({
+  redis: redis,
+  limiter: Ratelimit.slidingWindow(6, "1 h"),
+});
+
 //バリデーション
 const validation = (res: SignedObject) => {
   if (!verifyEvent(res.event)) throw new Error("不正なイベント");
@@ -32,6 +39,13 @@ const validation = (res: SignedObject) => {
 
   if (res.event.created_at * 1000 < new Date().getTime())
     throw new Error("過去が指定されています");
+
+  if (
+    res.event.tags.length != 1 ||
+    res.event.tags[0].length != 2 ||
+    res.event.tags[0][0] != "p"
+  )
+    throw new Error("不正なタグ");
 
   const createdAt = new Date(res.event.created_at * 1000);
 
@@ -75,11 +89,21 @@ export async function POST(req: NextRequest) {
   const ip = getIp(req);
   const res: SignedObject = await req.json();
 
+  const successIp = (await ratelimit.limit(ip)).success;
+  if (!successIp) {
+    return new Response("Too many requests", { status: 429 });
+  }
+
   try {
     validation(res);
   } catch (e) {
     console.log(e);
     return new Response("Unprocessable Entity", { status: 422 });
+  }
+
+  const successPubkey = (await ratelimit.limit(res.event.pubkey)).success;
+  if (!successPubkey) {
+    return new Response("Too many requests", { status: 429 });
   }
 
   try {

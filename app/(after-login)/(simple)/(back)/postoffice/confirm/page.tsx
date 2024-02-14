@@ -13,6 +13,8 @@ import Notice from "@/components/notice";
 import LineMapWrapper from "@/components/lineMapWrapper";
 import { getEventHash, nip19 } from "nostr-tools";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
+import Dialog from "@/components/dialog";
+import Link from "next/link";
 
 export default function Confirm() {
   const [addressProfile, setAddressProfile] = useState<any>();
@@ -25,6 +27,7 @@ export default function Confirm() {
   const [myRegion, setMyRegion] = useState<Region>();
   const [pubkey, setPubkey] = useState<string>();
   const [addressNpub, setAddressNpub] = useState<string>();
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const route = useRouter();
 
   useEffect(() => {
@@ -138,7 +141,14 @@ export default function Confirm() {
     });
 
     if (res.status != 200) {
-      throw new Error(`${res.status} Error`);
+      if (res.status == 429) {
+        setErrorMessage(
+          `${res.status} エラー\nレート制限がかかっているようね。残念だけど、1時間に6通のはがきしか送れないの。\nしばらく待ってからもう一度試してみなさい！`
+        );
+      } else {
+        setErrorMessage(`${res.status} エラー`);
+      }
+      return;
     }
 
     localStorage.removeItem("address-pubkey");
@@ -148,74 +158,86 @@ export default function Confirm() {
   };
 
   return (
-    <div className="space-y-8">
-      <h2 className="text-xl font-bold">確認をする</h2>
-      <Image
-        src={"/img/m11.webp"}
-        alt="はがきを投函する様子"
-        width={640}
-        height={360}
-      />
-      <p>
-        もう投函できるわ。でもちょっと待ちなさい！
-        <br />
-        ここが内容を確認する最後のチャンスなの。誤りがあったらあんたが困るんだから、ちゃんと確認しなさい。
-        <br />
-        べっ、別にあんたのことを思って言ってるんじゃないんだからね！
-      </p>
-      <p>お届け先はこれでいいのね？</p>
-      {addressProfile && (
-        <div className="w-full p-4 rounded-2xl outline-2 outline outline-neutral-200 space-y-8">
-          <div className="space-y-4">
-            <ProfileIcon picture={addressProfile.picture} />
-            <div>
-              {addressProfile?.display_name && (
-                <p className="font-bold">{addressProfile.display_name}</p>
-              )}
-              {addresProfileEvent && (
-                <p className="text-neutral-500 break-all">
-                  @
-                  {addressProfile.name ||
-                    nip19.npubEncode(addresProfileEvent.pubkey)}
-                </p>
-              )}
+    <>
+      <Dialog valid={!!errorMessage}>
+        <h2 className="font-bold">エラー</h2>
+        <MultiLineBody body={errorMessage} />
+        <Link
+          href={"/home"}
+          className="px-4 py-2 inline-block text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+        >
+          ホームへ戻る
+        </Link>
+      </Dialog>
+      <div className="space-y-8">
+        <h2 className="text-xl font-bold">確認をする</h2>
+        <Image
+          src={"/img/m11.webp"}
+          alt="はがきを投函する様子"
+          width={640}
+          height={360}
+        />
+        <p>
+          もう投函できるわ。でもちょっと待ちなさい！
+          <br />
+          ここが内容を確認する最後のチャンスなの。誤りがあったらあんたが困るんだから、ちゃんと確認しなさい。
+          <br />
+          べっ、別にあんたのことを思って言ってるんじゃないんだからね！
+        </p>
+        <p>お届け先はこれでいいのね？</p>
+        {addressProfile && (
+          <div className="w-full p-4 rounded-2xl outline-2 outline outline-neutral-200 space-y-8">
+            <div className="space-y-4">
+              <ProfileIcon picture={addressProfile.picture} />
+              <div>
+                {addressProfile?.display_name && (
+                  <p className="font-bold">{addressProfile.display_name}</p>
+                )}
+                {addresProfileEvent && (
+                  <p className="text-neutral-500 break-all">
+                    @
+                    {addressProfile.name ||
+                      nip19.npubEncode(addresProfileEvent.pubkey)}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="space-y-4">
-            <p className="font-bold">みちのり</p>
-            {addressRegion && myRegion && (
-              <DoubleReagionContext.Provider
-                value={{ address: addressRegion, my: myRegion }}
-              >
-                <LineMapWrapper />
-              </DoubleReagionContext.Provider>
-            )}
-            <div>
-              <p>{addressRegion?.countryName?.ja || "どこか…"}</p>
-              <div className="space-x-2 flex">
-                <p className="font-normal">かかる日数:</p>
-                <p>{estimatedDeliveryTime || "…"}日</p>
+            <div className="space-y-4">
+              <p className="font-bold">みちのり</p>
+              {addressRegion && myRegion && (
+                <DoubleReagionContext.Provider
+                  value={{ address: addressRegion, my: myRegion }}
+                >
+                  <LineMapWrapper />
+                </DoubleReagionContext.Provider>
+              )}
+              <div>
+                <p>{addressRegion?.countryName?.ja || "どこか…"}</p>
+                <div className="space-x-2 flex">
+                  <p className="font-normal">かかる日数:</p>
+                  <p>{estimatedDeliveryTime || "…"}日</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-      <p>内容はこれでいいのね？</p>
-      {textContent && myProfile && (
-        <DivCard>
-          <ProfileIcon picture={myProfile.picture} />
-          <MultiLineBody body={textContent} />
-        </DivCard>
-      )}
-      <p>最後に、注意事項を確かめておくのよ！</p>
-      <Notice />
-      <p>これでいいのね？なら「投函する」を押してもいいんじゃない？</p>
-      <button
-        onClick={publish}
-        className="w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50"
-      >
-        投函する
-      </button>
-    </div>
+        )}
+        <p>内容はこれでいいのね？</p>
+        {textContent && myProfile && (
+          <DivCard>
+            <ProfileIcon picture={myProfile.picture} />
+            <MultiLineBody body={textContent} />
+          </DivCard>
+        )}
+        <p>最後に、注意事項を確かめておくのよ！</p>
+        <Notice />
+        <p>これでいいのね？なら「投函する」を押してもいいんじゃない？</p>
+        <button
+          onClick={publish}
+          className="w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50"
+        >
+          投函する
+        </button>
+      </div>
+    </>
   );
 }

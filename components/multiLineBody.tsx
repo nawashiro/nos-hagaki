@@ -44,5 +44,5 @@ export const MultiLineBody = ({ body }: { body: string }) => {
       </p>
     );
   });
-  return <div className="leading-9 break-words space-y-8">{texts}</div>;
+  return <div className="leading-9 break-words">{texts}</div>;
 };
