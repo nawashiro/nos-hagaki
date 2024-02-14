@@ -68,6 +68,7 @@ export default function Complete({ params }: { params: { id: string } }) {
         )}`
       );
     };
+    scroll(0, 0);
     firstFetch();
   }, []);
 

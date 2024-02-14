@@ -1,5 +1,3 @@
-"use server";
-
 import NDK from "@nostr-dev-kit/ndk";
 
 export class ServerNDKSingleton extends NDK {

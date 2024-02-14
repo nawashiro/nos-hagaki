@@ -10,13 +10,25 @@ datasource db {
   // or you'll have dangling databases from migrations
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
- 
-model Posts {
+
+model Event{
+  id        String    @id
+  SubmittedData   SubmittedData  @relation(fields: [submittedDataId], references: [id], onDelete: Cascade)
+  submittedDataId Int @unique
+  kind      Int
+  content   String
+  pubkey    String
+  created_at  Int
+  address   String
+  sig       String
+}
+
+model SubmittedData {
   id        Int       @id @default(autoincrement())
   sended    Boolean   @default(false)
   createdAt DateTime  @default(now())
   sendDay   DateTime
-  event     Json
+  event     Event?
   relays    String[]
   ip        String
 }

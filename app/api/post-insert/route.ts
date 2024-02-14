@@ -85,11 +85,21 @@ const dbInsert = async (res: SignedObject, ip: string, outbox: Set<string>) => {
   sendDay.setUTCSeconds(0);
   sendDay.setUTCMilliseconds(0);
 
-  await prisma.posts.create({
+  await prisma.submittedData.create({
     data: {
       sendDay: sendDay,
       relays: Array.from(outbox),
-      event: res.event,
+      event: {
+        create: {
+          kind: res.event.kind,
+          content: res.event.content,
+          pubkey: res.event.pubkey,
+          created_at: res.event.created_at,
+          address: res.event.tags[0][1],
+          sig: res.event.sig,
+          id: res.event.id,
+        },
+      },
       ip: ip,
     },
   });
