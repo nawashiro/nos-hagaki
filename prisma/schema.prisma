@@ -12,7 +12,8 @@ datasource db {
 }
  
 model Posts {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
+  sended    Boolean   @default(false)
   createdAt DateTime  @default(now())
   sendDay   DateTime
   event     Json
