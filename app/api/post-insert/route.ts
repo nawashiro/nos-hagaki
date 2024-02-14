@@ -29,7 +29,7 @@ const ratelimit = new Ratelimit({
 });
 
 //バリデーション
-const validation = (res: SignedObject) => {
+const validation = (res: SignedObject, outbox: Set<string>) => {
   if (!verifyEvent(res.event)) throw new Error("不正なイベント");
 
   if (res.event.kind != 1) throw new Error("不正なkind");
@@ -69,7 +69,7 @@ const validation = (res: SignedObject) => {
     "i"
   ); // fragment locator
 
-  for (const value of res.outbox) {
+  for (const value of outbox) {
     if (!urlPattern.test(value)) {
       throw Error("WebSocketサーバーurlが不正です");
     }
@@ -77,7 +77,7 @@ const validation = (res: SignedObject) => {
 };
 
 //インサート
-const dbInsert = async (res: SignedObject, ip: string) => {
+const dbInsert = async (res: SignedObject, ip: string, outbox: Set<string>) => {
   const sendDay = new Date(res.event.created_at * 1000);
 
   sendDay.setUTCHours(0);
@@ -86,7 +86,12 @@ const dbInsert = async (res: SignedObject, ip: string) => {
   sendDay.setUTCMilliseconds(0);
 
   await prisma.posts.create({
-    data: { sendDay: sendDay, relays: res.outbox, event: res.event, ip: ip },
+    data: {
+      sendDay: sendDay,
+      relays: Array.from(outbox),
+      event: res.event,
+      ip: ip,
+    },
   });
 };
 
@@ -110,8 +115,10 @@ export async function POST(req: NextRequest) {
     return new Response("Too many requests", { status: 429 });
   }
 
+  const outbox = new Set<string>(res.outbox);
+
   try {
-    validation(res);
+    validation(res, outbox);
   } catch (e) {
     console.log(e);
     return new Response("Unprocessable Entity", { status: 422 });
@@ -123,7 +130,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await dbInsert(res, ip);
+    await dbInsert(res, ip, outbox);
     await submittedDataSet(res, ip);
   } catch (e) {
     console.log(e);
