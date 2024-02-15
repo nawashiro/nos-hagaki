@@ -33,65 +33,67 @@ export default function Confirm() {
   useEffect(() => {
     const firstFetchdata = async () => {
       //NIP-07によるユーザ情報取得
-      let user;
+
       try {
+        let user;
         if (!localStorage.getItem("login")) {
           throw new Error("未ログイン");
         }
         user = await fetchdata.getUser();
+
+        setPubkey(user.pubkey);
+
+        //kind-10002取得
+        await fetchdata.getExplicitRelayUrls(user.pubkey);
+
+        //データの存在チェック
+
+        const addressNpub = localStorage.getItem("address-pubkey");
+
+        if (!addressNpub) {
+          throw new Error("アドレスが指定されていません。");
+        }
+
+        setAddressNpub(addressNpub);
+
+        const newTextContent = localStorage.getItem("draft-text");
+
+        if (!newTextContent) {
+          throw new Error("本文が空です。");
+        }
+
+        if (newTextContent.length > 1200) {
+          throw new Error("本文を1200文字以下にしてください。");
+        }
+
+        setTextContent(newTextContent);
+
+        //===お届け先===
+
+        //kind-0取得
+        const newAddressProfile = await fetchdata.getAloneProfile(addressNpub);
+        newAddressProfile && setAddressProfileEvent(newAddressProfile);
+        setAddressProfile(
+          newAddressProfile ? JSON.parse(newAddressProfile.content) : {}
+        );
+
+        //すみか情報を取得
+        setAddressRegion(await fetchdata.getAloneRegion(addressNpub));
+        setEstimatedDeliveryTime(
+          await fetchdata.getEstimatedDeliveryTime(user.pubkey, addressNpub)
+        );
+
+        //===自分===
+
+        //kind-0取得
+        const newMyProfile = await fetchdata.getAloneProfile(user.pubkey);
+        setMyProfile(newMyProfile ? JSON.parse(newMyProfile.content) : {});
+
+        setMyRegion(await fetchdata.getAloneRegion(user.pubkey));
       } catch {
         router.push("/");
         return;
       }
-      setPubkey(user.pubkey);
-
-      //kind-10002取得
-      await fetchdata.getExplicitRelayUrls(user.pubkey);
-
-      //データの存在チェック
-
-      const addressNpub = localStorage.getItem("address-pubkey");
-
-      if (!addressNpub) {
-        throw new Error("アドレスが指定されていません。");
-      }
-
-      setAddressNpub(addressNpub);
-
-      const newTextContent = localStorage.getItem("draft-text");
-
-      if (!newTextContent) {
-        throw new Error("本文が空です。");
-      }
-
-      if (newTextContent.length > 1200) {
-        throw new Error("本文を1200文字以下にしてください。");
-      }
-
-      setTextContent(newTextContent);
-
-      //===お届け先===
-
-      //kind-0取得
-      const newAddressProfile = await fetchdata.getAloneProfile(addressNpub);
-      newAddressProfile && setAddressProfileEvent(newAddressProfile);
-      setAddressProfile(
-        newAddressProfile ? JSON.parse(newAddressProfile.content) : {}
-      );
-
-      //すみか情報を取得
-      setAddressRegion(await fetchdata.getAloneRegion(addressNpub));
-      setEstimatedDeliveryTime(
-        await fetchdata.getEstimatedDeliveryTime(user.pubkey, addressNpub)
-      );
-
-      //===自分===
-
-      //kind-0取得
-      const newMyProfile = await fetchdata.getAloneProfile(user.pubkey);
-      setMyProfile(newMyProfile ? JSON.parse(newMyProfile.content) : {});
-
-      setMyRegion(await fetchdata.getAloneRegion(user.pubkey));
     };
     firstFetchdata();
   }, []);
