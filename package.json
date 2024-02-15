@@ -20,7 +20,7 @@
     "leaflet": "^1.9.4",
     "leaflet.geodesic": "^2.7.1",
     "next": "14.0.4",
-    "nostr-tools": "^2.1.5",
+    "nostr-tools": "^2.1.9",
     "pluscodes": "^2.6.0",
     "point-in-polygon": "^1.1.0",
     "prisma": "^5.9.1",

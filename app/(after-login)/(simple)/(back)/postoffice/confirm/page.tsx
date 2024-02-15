@@ -234,7 +234,7 @@ export default function Confirm() {
         {textContent && myProfile && (
           <DivCard>
             <ProfileIcon picture={myProfile.picture} />
-            <MultiLineBody body={textContent} />
+            <MultiLineBody body={textContent} pointerEventNone={true} />
           </DivCard>
         )}
         <p>最後に、注意事項を確かめておくのよ！</p>

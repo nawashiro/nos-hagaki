@@ -1,7 +1,7 @@
 "use server";
 import { ServerNDKSingleton } from "@/src/ServerNDKSingleton";
 import { NDKEvent, NDKRelay, NDKRelaySet } from "@nostr-dev-kit/ndk";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { NextRequest } from "next/server";
 
 const prisma = new PrismaClient();
