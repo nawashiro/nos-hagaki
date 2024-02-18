@@ -100,7 +100,7 @@ export default function Complete({ params }: { params: { id: string } }) {
       <p>お届け予定日をお届け先に知らせておくこともできるわよ？</p>
       <DivCard>
         <ProfileIcon picture={myProfile?.picture} />
-        <MultiLineBody body={messageTextContent} />
+        <MultiLineBody body={messageTextContent} pointerEventNone={true} />
         {messageSubmitted ? (
           <div className="px-4 py-2 inline-block text-neutral-500 rounded-[2rem] bg-neutral-200">
             {messageSubmitted}

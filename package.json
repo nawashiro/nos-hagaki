@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hcaptcha/react-hcaptcha": "^1.10.1",
     "@nostr-dev-kit/ndk": "^2.3.3",
     "@nostr-dev-kit/ndk-cache-dexie": "^2.2.4",
     "@prisma/client": "^5.9.1",
@@ -17,6 +18,7 @@
     "@upstash/redis": "^1.28.3",
     "@vercel/postgres": "^0.7.2",
     "axios": "^1.6.7",
+    "hcaptcha": "^0.1.1",
     "leaflet": "^1.9.4",
     "leaflet.geodesic": "^2.7.1",
     "next": "14.0.4",

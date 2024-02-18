@@ -15,6 +15,7 @@ import { getEventHash, nip19 } from "nostr-tools";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Dialog from "@/components/dialog";
 import Link from "next/link";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 export default function Confirm() {
   const [addressProfile, setAddressProfile] = useState<any>();
@@ -29,6 +30,7 @@ export default function Confirm() {
   const [addressNpub, setAddressNpub] = useState<string>();
   const [errorMessage, setErrorMessage] = useState<string>("");
   const router = useRouter();
+  const [hCaptchaToken, setHCaptchaToken] = useState<string>();
 
   useEffect(() => {
     const firstFetchdata = async () => {
@@ -104,7 +106,8 @@ export default function Confirm() {
       !pubkey ||
       !textContent ||
       !addressNpub ||
-      !fetchdata.user?.pubkey
+      !fetchdata.user?.pubkey ||
+      !hCaptchaToken
     )
       return;
 
@@ -144,6 +147,7 @@ export default function Confirm() {
     const signedObject = {
       outbox: fetchdata.outboxRelays,
       event: signed,
+      h_captcha_token: hCaptchaToken,
     };
 
     const res = await fetch("/api/post-insert", {
@@ -167,6 +171,10 @@ export default function Confirm() {
 
     router.push(`./complete/${signedObject.event.id}`);
   };
+
+  function handleVerificationSuccess(token: string) {
+    setHCaptchaToken(token);
+  }
 
   return (
     <>
@@ -242,9 +250,21 @@ export default function Confirm() {
         <p>最後に、注意事項を確かめておくのよ！</p>
         <Notice />
         <p>これでいいのね？なら「投函する」を押してもいいんじゃない？</p>
+        <HCaptcha
+          sitekey={
+            process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ??
+            "expect hCaptcha site key"
+          }
+          onVerify={(token: string) => handleVerificationSuccess(token)}
+        />
         <button
           onClick={publish}
-          className="w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50"
+          className={
+            hCaptchaToken
+              ? "w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50"
+              : "w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] opacity-50"
+          }
+          disabled={!hCaptchaToken}
         >
           投函する
         </button>

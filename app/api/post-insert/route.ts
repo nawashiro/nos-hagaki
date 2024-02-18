@@ -6,10 +6,14 @@ import { NextRequest } from "next/server";
 import { getIp } from "@/src/getIp";
 import { redis } from "@/src/redisUtil";
 import { Ratelimit } from "@upstash/ratelimit";
+import { verify } from "hcaptcha";
 
 const prisma = new PrismaClient();
 
+const hCaptchasecret = process.env.HCAPTCHA_SECRET ?? "expect secret";
+
 interface SignedObject {
+  h_captcha_token: string;
   outbox: string[];
   event: {
     kind: number;
@@ -117,8 +121,22 @@ const submittedDataSet = async (res: SignedObject, ip: string) => {
 };
 
 export async function POST(req: NextRequest) {
+  console.log("request");
   const ip = getIp(req);
   const res: SignedObject = await req.json();
+
+  try {
+    const hCaptchaverify = await verify(hCaptchasecret, res.h_captcha_token);
+
+    if (hCaptchaverify.success === true) {
+      console.log("success!", hCaptchaverify);
+    } else {
+      return new Response("Unauthorized", { status: 401 });
+    }
+  } catch (e) {
+    console.log(e);
+    return new Response("Internal server error", { status: 500 });
+  }
 
   const successIp = (await ratelimit.limit(ip)).success;
   if (!successIp) {
