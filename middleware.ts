@@ -36,9 +36,6 @@ export const middleware = async (request: NextRequest) => {
 
   const country = request.geo?.country;
 
-  // 接続元の国を表示
-  console.info(country);
-
   if (process.env.NODE_ENV === "production") {
     if (country && country !== "JP") {
       console.info(
