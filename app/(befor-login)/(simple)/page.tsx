@@ -19,6 +19,14 @@ export default function Home() {
   const login = () => {
     fetchdata.getUser().then((user) => {
       if (!!user.npub) {
+        localStorage.setItem(
+          "privacy-policy-agree-date",
+          new Date().toISOString()
+        );
+        localStorage.setItem(
+          "terms-of-use-agree-date",
+          new Date().toISOString()
+        );
         localStorage.setItem("login", user.npub);
         router.push("/home");
       }
