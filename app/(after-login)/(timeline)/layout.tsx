@@ -17,6 +17,8 @@ export default function RootLayout({
     <>
       <header className="p-4 flex fixed z-10 top-0 left-0 w-full backdrop-blur">
         <h1 className="font-bold">NosHagaki β</h1>
+        <HeaderLink href="/terms-of-use">利用規約</HeaderLink>
+        <HeaderLink href="/privacy-policy">プライバシーポリシー</HeaderLink>
         <HeaderLink href="/help">ヘルプ</HeaderLink>
       </header>
       <main className="px-4 py-24 min-h-screen">
