@@ -9,7 +9,7 @@ export default function InPreparation() {
       <p>
         悪いけど、このページはまだ手を付けてる最中なのよ。
         <br />
-        完成するまで、ちゃんと待っててよね！
+        完成するまで待ってなさいよね！
       </p>
     </div>
   );
