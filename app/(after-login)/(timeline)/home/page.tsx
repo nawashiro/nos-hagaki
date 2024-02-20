@@ -13,6 +13,7 @@ import { create } from "zustand";
 import { MdOutlineOpenInNew } from "react-icons/md";
 import ProfileIcon from "@/components/profileIcon";
 import { FetchData } from "@/src/fetchData";
+import { useRouter } from "next/navigation";
 
 interface State {
   filter: NDKFilter;
@@ -32,8 +33,12 @@ export default function Home() {
   const [messageReaded, setMessageReaded] = useState<boolean>(true); //ログイン時メッセージ表示可否
   const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
   const { filter, myProfile, timeline, region } = useStore();
+  const [privacyPolicyChanged, setPrivacyPolicyChanged] =
+    useState<boolean>(false);
+  const [termsOfUseChanged, setTermsOfUseChanged] = useState<boolean>(false);
 
   const fetchdata = new FetchData();
+  const router = useRouter();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
@@ -51,8 +56,48 @@ export default function Home() {
 
   useEffect(() => {
     const fitstFetchdata = async () => {
+      //プライバシーポリシー告知
+      const privacyPolicyChangeDay = process.env
+        .NEXT_PUBLIC_PRIVACY_POLICY_CHANGED
+        ? new Date(process.env.NEXT_PUBLIC_PRIVACY_POLICY_CHANGED)
+        : new Date();
+
+      const privacyPolicyAgreeDateString = localStorage.getItem(
+        "privacy-policy-agree-date"
+      );
+
+      const privacyPolicyAgreeDate = privacyPolicyAgreeDateString
+        ? new Date(privacyPolicyAgreeDateString)
+        : new Date(0);
+
+      setPrivacyPolicyChanged(privacyPolicyChangeDay >= privacyPolicyAgreeDate);
+
+      //利用規約告知
+      const termsOfUseChangeDay = process.env.NEXT_PUBLIC_TEAMS_OF_USE_CHANGED
+        ? new Date(process.env.NEXT_PUBLIC_TEAMS_OF_USE_CHANGED)
+        : new Date();
+
+      const termsOfUseChangeDayString = localStorage.getItem(
+        "terms-of-use-agree-date"
+      );
+
+      const termsOfUseChangeDayAgreeDate = termsOfUseChangeDayString
+        ? new Date(termsOfUseChangeDayString)
+        : new Date(0);
+
+      setTermsOfUseChanged(termsOfUseChangeDay >= termsOfUseChangeDayAgreeDate);
+
       //NIP-07によるユーザ情報取得
-      const user = await fetchdata.getUser();
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
 
       //すみか情報取得
       useStore.setState({
@@ -110,11 +155,55 @@ export default function Home() {
             </SimpleButton>
             <Link
               href={"/help"}
-              className="px-4 py-2 text-neutral-500 border-2 border-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+              className="block px-4 py-2 text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
             >
               ヘルプを見る
             </Link>
           </div>
+        </DivCard>
+      )}
+
+      {privacyPolicyChanged && (
+        <DivCard>
+          <p>
+            プライバシーポリシーが変更されたわ。
+            <br />
+            しっかりと確認しておくこと！
+          </p>
+          <SimpleButton
+            onClick={() => {
+              localStorage.setItem(
+                "privacy-policy-agree-date",
+                new Date().toISOString()
+              );
+              setPrivacyPolicyChanged(false);
+              router.push("/privacy-policy");
+            }}
+          >
+            プライバシーポリシーを見る
+          </SimpleButton>
+        </DivCard>
+      )}
+
+      {termsOfUseChanged && (
+        <DivCard>
+          <p>
+            利用規約が変更されたわ。
+            <br />
+            しっかりと確認しておくこと！
+          </p>
+          <SimpleButton
+            onClick={() => {
+              localStorage.setItem(
+                "terms-of-use-agree-date",
+                new Date().toISOString()
+              );
+              setTermsOfUseChanged(false);
+              router.push("/terms-of-use");
+            }}
+          >
+            利用規約を見る
+          </SimpleButton>
         </DivCard>
       )}
 
@@ -127,7 +216,7 @@ export default function Home() {
           )}
           {fetchdata.user && (
             <p className="text-neutral-500 break-all">
-              @{myProfile.name || fetchdata.user.pubkey}
+              @{myProfile.name || fetchdata.user.npub}
             </p>
           )}
         </div>

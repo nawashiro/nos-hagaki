@@ -3,6 +3,7 @@ import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import { Region } from "@/src/getRegions";
 import IconWithPostmark from "./iconWithPostmark";
+import { nip19 } from "nostr-tools";
 
 export default function EventCard({
   event,
@@ -46,7 +47,7 @@ export default function EventCard({
                 <p className="font-bold">{profile.display_name}</p>
               )}
               <p className="text-neutral-500 break-all">
-                @{profile.name || event.pubkey}
+                @{profile.name || nip19.npubEncode(event.pubkey)}
               </p>
             </div>
             <p className="text-neutral-500">{dateTime.toLocaleDateString()}</p>

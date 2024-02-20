@@ -1,11 +1,14 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { NDKNip07Signer } from "@nostr-dev-kit/ndk";
+import { useEffect, useState } from "react";
 import SimpleButton from "@/components/simpleButton";
+import { FetchData } from "@/src/fetchData";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
+  const fetchdata = new FetchData();
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem("login")) {
@@ -14,9 +17,16 @@ export default function Home() {
   }, []);
 
   const login = () => {
-    const nip07signer = new NDKNip07Signer();
-    nip07signer.user().then((user) => {
+    fetchdata.getUser().then((user) => {
       if (!!user.npub) {
+        localStorage.setItem(
+          "privacy-policy-agree-date",
+          new Date().toISOString()
+        );
+        localStorage.setItem(
+          "terms-of-use-agree-date",
+          new Date().toISOString()
+        );
         localStorage.setItem("login", user.npub);
         router.push("/home");
       }
@@ -24,18 +34,53 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <h1 className="font-bold text-2xl">NosHagaki β</h1>
       <p>
         これはWEB用のNostrクライアントです。
         <br />
         距離が開いていて時間が掛かる、「はがきのやり取り」のようなものを目指しています。
         <br />
-        Nostr上の友達とはがきを送りあってみませんか？
+        Nostr上の友達とはがきで文通してみませんか？
       </p>
-      <SimpleButton onClick={login}>
+      <p>
+        ※これはベータ版です。ヘルプもありません。実験目的でのみ使用してください。
+      </p>
+      <div className="space-x-2">
+        <input
+          type="checkbox"
+          onClick={(e) => {
+            setChecked(e.currentTarget.checked);
+          }}
+        />
+        <label>
+          <Link
+            href={"/privacy-policy"}
+            className="text-neutral-400 underline hover:text-neutral-300"
+          >
+            プライバシーポリシー
+          </Link>
+          と
+          <Link
+            href={"/terms-of-use"}
+            className="text-neutral-400 underline hover:text-neutral-300"
+          >
+            利用規約
+          </Link>
+          に同意する
+        </label>
+      </div>
+      <button
+        onClick={login}
+        disabled={!checked}
+        className={
+          checked
+            ? "px-4 py-2 text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+            : "px-4 py-2 text-neutral-500 rounded-[2rem] bg-neutral-200"
+        }
+      >
         NIP-07ブラウザ拡張機能でログイン
-      </SimpleButton>
+      </button>
     </div>
   );
 }

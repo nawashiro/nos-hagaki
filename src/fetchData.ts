@@ -4,8 +4,6 @@ import {
   NDKEvent,
   NDKFilter,
   NDKNip07Signer,
-  NDKRelay,
-  NDKRelaySet,
   NDKUser,
 } from "@nostr-dev-kit/ndk";
 import { Region, getRegions } from "./getRegions";
@@ -140,6 +138,10 @@ export class FetchData {
     return this._regions;
   }
 
+  get outboxRelays() {
+    return this._outboxRelays;
+  }
+
   public publish = async (event: NDKEvent) => {
     event.ndk = this._ndk;
     return await event.publish();
@@ -151,6 +153,7 @@ export class FetchData {
 
     if (!user) {
       const nip07signer = new NDKNip07Signer();
+      this._ndk.signer = nip07signer;
       user = await nip07signer.user();
       useStore.setState({ user: user });
     }

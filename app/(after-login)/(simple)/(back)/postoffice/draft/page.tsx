@@ -6,8 +6,10 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import Notice from "@/components/notice";
 import SimpleButton from "@/components/simpleButton";
 import { FetchData } from "@/src/fetchData";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { nip19 } from "nostr-tools";
 import { useEffect, useRef, useState } from "react";
 import { MdCheck } from "react-icons/md";
 
@@ -22,6 +24,8 @@ export default function Draft() {
   const fetchdata = new FetchData();
   const route = useRouter();
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [addresProfileEvent, setAddressProfileEvent] = useState<NDKEvent>();
+  const router = useRouter();
 
   const saveText = () => {
     if (textContent !== undefined) {
@@ -63,7 +67,16 @@ export default function Draft() {
   useEffect(() => {
     const firstFetchData = async () => {
       //NIP-07によるユーザ情報取得
-      const user = await fetchdata.getUser();
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
 
       //kind-10002取得
       await fetchdata.getExplicitRelayUrls(user.pubkey);
@@ -72,6 +85,7 @@ export default function Draft() {
       const addressNpub = localStorage.getItem("address-pubkey");
       if (addressNpub) {
         const newProfile = await fetchdata.getAloneProfile(addressNpub);
+        newProfile && setAddressProfileEvent(newProfile);
         setAddressProfile(newProfile ? JSON.parse(newProfile.content) : {});
       }
     };
@@ -118,14 +132,17 @@ export default function Draft() {
         </div>
         <Notice />
         <p>わかった？なら「同意する」を押してもいいんじゃない？</p>
-        <SimpleButton
-          onClick={() => {
-            setDialogViewFlag(false);
-            localStorage.setItem("notice-dialog-accepted", "true");
-          }}
-        >
-          同意する
-        </SimpleButton>
+        <div className="flex space-x-4">
+          <SimpleButton
+            onClick={() => {
+              setDialogViewFlag(false);
+              localStorage.setItem("notice-dialog-accepted", "true");
+            }}
+          >
+            同意する
+          </SimpleButton>
+          <SimpleButton onClick={router.back}>同意しない</SimpleButton>
+        </div>
       </Dialog>
       <Dialog valid={!!errorMessage}>
         <h2 className="font-bold">エラー</h2>
@@ -163,9 +180,13 @@ export default function Draft() {
               <p>お届け先</p>
               <div className="flex space-x-2">
                 <p className="font-bold">{addressProfile.display_name}</p>
-                <p className="text-neutral-500 break-all">
-                  @{addressProfile.name}
-                </p>
+                {addresProfileEvent && (
+                  <p className="text-neutral-500 break-all">
+                    @
+                    {addressProfile.name ||
+                      nip19.npubEncode(addresProfileEvent.pubkey)}
+                  </p>
+                )}
               </div>
             </>
           ) : (

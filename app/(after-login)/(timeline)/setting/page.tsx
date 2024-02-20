@@ -1,9 +1,13 @@
 "use client";
 import SimpleButton from "@/components/simpleButton";
+import { FetchData } from "@/src/fetchData";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Setting() {
+  const fetchdata = new FetchData();
   const router = useRouter();
+
   const logout = () => {
     localStorage.clear();
 
@@ -17,8 +21,25 @@ export default function Setting() {
       throw new Error("DBの削除に失敗しました");
     };
 
-    router.push("/");
+    window.location.reload();
   };
+
+  useEffect(() => {
+    const firstFetchData = async () => {
+      //NIP-07によるユーザ情報取得
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
+    };
+    firstFetchData();
+  }, []);
 
   return (
     <div className="space-y-8">
