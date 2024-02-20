@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { redis } from "./src/redisUtil";
 import { getIp } from "./src/getIp";
+import { get } from "@vercel/edge-config";
 
 const getTorIps = async () => {
   const res = await fetch("https://check.torproject.org/torbulkexitlist");
@@ -31,7 +32,7 @@ export const middleware = async (request: NextRequest) => {
   }
 
   if ((await redis.smembers("tor-exit-ips")).find((element) => element == ip)) {
-    return new NextResponse(null, { status: 401 });
+    return new NextResponse(null, { status: 403 });
   }
 
   const country = request.geo?.country;
@@ -41,7 +42,18 @@ export const middleware = async (request: NextRequest) => {
       console.info(
         `IPアドレスが日本以外のため、アクセスを拒否しました。[request.ip = ${request.ip}]`
       );
-      return new NextResponse(null, { status: 401 });
+      return new NextResponse(null, { status: 403 });
     }
+  }
+
+  const blockIps = await get<string[]>("blockIps");
+  if (ip && blockIps?.includes(ip)) {
+    return new NextResponse(null, { status: 403 });
+  }
+
+  const isMaintenance = await get("isMaintenance");
+  if (isMaintenance) {
+    request.nextUrl.pathname = "/maintenance";
+    return NextResponse.rewrite(request.nextUrl, { status: 503 });
   }
 };
