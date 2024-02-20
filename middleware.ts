@@ -44,16 +44,16 @@ export const middleware = async (request: NextRequest) => {
       );
       return new NextResponse(null, { status: 403 });
     }
-  }
 
-  const blockIps = await get<string[]>("blockIps");
-  if (ip && blockIps?.includes(ip)) {
-    return new NextResponse(null, { status: 403 });
-  }
+    const blockIps = await get<string[]>("blockIps");
+    if (ip && blockIps?.includes(ip)) {
+      return new NextResponse(null, { status: 403 });
+    }
 
-  const isMaintenance = await get("isMaintenance");
-  if (isMaintenance) {
-    request.nextUrl.pathname = "/maintenance";
-    return NextResponse.rewrite(request.nextUrl, { status: 503 });
+    const isMaintenance = await get("isMaintenance");
+    if (isMaintenance) {
+      request.nextUrl.pathname = "/maintenance";
+      return NextResponse.rewrite(request.nextUrl, { status: 503 });
+    }
   }
 };
