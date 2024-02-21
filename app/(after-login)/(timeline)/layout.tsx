@@ -2,6 +2,7 @@
 import Link from "next/link";
 import {
   MdOutlineHome,
+  MdOutlineInfo,
   MdOutlineMarkunreadMailbox,
   MdOutlineSettings,
 } from "react-icons/md";
@@ -33,6 +34,9 @@ export default function RootLayout({
           </NavigationLink>
           <NavigationLink href="/setting" title="設定">
             <MdOutlineSettings className="h-10 w-10 ml-1 my-auto" />
+          </NavigationLink>
+          <NavigationLink href="/infomation" title="情報">
+            <MdOutlineInfo className="h-10 w-10 ml-1 my-auto" />
           </NavigationLink>
           <Link
             href={"/postoffice/draft"}
