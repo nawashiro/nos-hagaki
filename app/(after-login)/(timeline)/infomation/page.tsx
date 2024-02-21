@@ -7,7 +7,7 @@ export default function Infomation() {
       <h1 className="text-xl font-bold">NosHagakiについて</h1>
       <div>
         <p>
-          Github:
+          Github:<> </>
           <a
             className="break-words text-neutral-400 underline hover:text-neutral-300"
             href={"https://github.com/nawashiro/noshagaki"}
@@ -18,7 +18,7 @@ export default function Infomation() {
           </a>
         </p>
         <p>
-          Author:
+          Author:<> </>
           <Link
             href={
               "/author/04c4089f9e54c3883355a6739141e54376f7aabd7a8565e7483e8173dfd1a512"

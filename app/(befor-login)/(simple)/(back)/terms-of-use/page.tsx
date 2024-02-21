@@ -131,6 +131,7 @@ export default function TeamOfUse() {
         </li>
       </Ol>
       <P>以上</P>
+      <P>UTC {process.env.NEXT_PUBLIC_TEAMS_OF_USE_CHANGED} 制定</P>
     </>
   );
 }

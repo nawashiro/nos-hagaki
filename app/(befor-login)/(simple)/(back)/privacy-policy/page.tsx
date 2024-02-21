@@ -93,6 +93,7 @@ export default function PrivacyPolicy() {
         </li>
       </Ol>
       <P>以上</P>
+      <P>UTC {process.env.NEXT_PUBLIC_PRIVACY_POLICY_CHANGED} 制定</P>
     </>
   );
 }
