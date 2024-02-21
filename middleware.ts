@@ -24,14 +24,17 @@ export const middleware = async (request: NextRequest) => {
   if (!(await redis.exists("tor-exit-ips"))) {
     try {
       await getTorIps();
-      console.log("Tor出口IPリストを取得しました");
+      console.info("Tor出口IPリストを取得しました");
     } catch (e) {
-      console.log("エラー: " + e);
+      console.info("エラー: " + e);
       return new NextResponse(null, { status: 500 });
     }
   }
 
   if ((await redis.smembers("tor-exit-ips")).find((element) => element == ip)) {
+    console.info(
+      "IPアドレスがTor出口IPリストに一致したため、アクセスを拒否しました。"
+    );
     return new NextResponse(null, { status: 403 });
   }
 
@@ -47,6 +50,9 @@ export const middleware = async (request: NextRequest) => {
 
     const blockIps = await get<string[]>("blockIps");
     if (ip && blockIps?.includes(ip)) {
+      console.info(
+        "IPアドレスがブロックIPリストに一致したため、アクセスを拒否しました。"
+      );
       return new NextResponse(null, { status: 403 });
     }
 
