@@ -31,6 +31,7 @@ export default function Confirm() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const router = useRouter();
   const [hCaptchaToken, setHCaptchaToken] = useState<string>();
+  const [buttonDisable, setButtonDisable] = useState<boolean>(true);
 
   useEffect(() => {
     const firstFetchdata = async () => {
@@ -174,6 +175,7 @@ export default function Confirm() {
 
   function handleVerificationSuccess(token: string) {
     setHCaptchaToken(token);
+    setButtonDisable(false);
   }
 
   return (
@@ -258,13 +260,16 @@ export default function Confirm() {
           onVerify={(token: string) => handleVerificationSuccess(token)}
         />
         <button
-          onClick={publish}
+          onClick={() => {
+            setButtonDisable(true);
+            publish();
+          }}
           className={
-            hCaptchaToken
-              ? "w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50"
-              : "w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] opacity-50"
+            buttonDisable
+              ? "w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] opacity-50"
+              : "w-full bg-[#E10014] px-4 py-2 text-white rounded-[2rem] hover:opacity-50"
           }
-          disabled={!hCaptchaToken}
+          disabled={buttonDisable}
         >
           投函する
         </button>
