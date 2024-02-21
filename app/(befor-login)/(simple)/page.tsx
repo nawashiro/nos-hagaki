@@ -43,9 +43,6 @@ export default function Home() {
         <br />
         Nostr上の友達とはがきで文通してみませんか？
       </p>
-      <p>
-        ※これはベータ版です。ヘルプもありません。実験目的でのみ使用してください。
-      </p>
       <div className="space-x-2">
         <input
           type="checkbox"
