@@ -21,39 +21,52 @@ const getTorIps = async () => {
 export const middleware = async (request: NextRequest) => {
   const ip = getIp(request);
 
-  if (!(await redis.exists("tor-exit-ips"))) {
-    try {
-      await getTorIps();
-      console.info("Tor出口IPリストを取得しました");
-    } catch (e) {
-      console.info("エラー: " + e);
-      return new NextResponse(null, { status: 500 });
-    }
-  }
-
-  if ((await redis.smembers("tor-exit-ips")).find((element) => element == ip)) {
-    console.info(
-      "IPアドレスがTor出口IPリストに一致したため、アクセスを拒否しました。"
-    );
-    return new NextResponse(null, { status: 403 });
-  }
-
-  const country = request.geo?.country;
-
   if (process.env.NODE_ENV === "production") {
-    if (country && country !== "JP") {
-      console.info(
-        `IPアドレスが日本以外のため、アクセスを拒否しました。[request.ip = ${request.ip}]`
-      );
-      return new NextResponse(null, { status: 403 });
-    }
+    const cronIp = await get<string>("cronIp");
 
-    const blockIps = await get<string[]>("blockIps");
-    if (ip && blockIps?.includes(ip)) {
-      console.info(
-        "IPアドレスがブロックIPリストに一致したため、アクセスを拒否しました。"
-      );
-      return new NextResponse(null, { status: 403 });
+    //vercelによるcron実行でないならば
+    if (
+      !(request.url == `${process.env.VERCEL_URL}/api/cron` && ip == cronIp)
+    ) {
+      //Tor出口IPリストを取得
+      if (!(await redis.exists("tor-exit-ips"))) {
+        try {
+          await getTorIps();
+          console.info("Tor出口IPリストを取得しました");
+        } catch (e) {
+          console.info("エラー: " + e);
+          return new NextResponse(null, { status: 500 });
+        }
+      }
+
+      //Torをブロック
+      if (
+        (await redis.smembers("tor-exit-ips")).find((element) => element == ip)
+      ) {
+        console.info(
+          "IPアドレスがTor出口IPリストに一致したため、アクセスを拒否しました。"
+        );
+        return new NextResponse(null, { status: 403 });
+      }
+
+      //日本国外をブロック
+      const country = request.geo?.country;
+
+      if (country && country !== "JP") {
+        console.info(
+          `IPアドレスが日本以外のため、アクセスを拒否しました。[request.ip = ${request.ip}]`
+        );
+        return new NextResponse(null, { status: 403 });
+      }
+
+      //ブロックIPリストに含まれるIPをブロック
+      const blockIps = await get<string[]>("blockIps");
+      if (ip && blockIps?.includes(ip)) {
+        console.info(
+          "IPアドレスがブロックIPリストに一致したため、アクセスを拒否しました。"
+        );
+        return new NextResponse(null, { status: 403 });
+      }
     }
 
     const isMaintenance = await get("isMaintenance");
