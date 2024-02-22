@@ -19,8 +19,10 @@ export async function GET(request: NextRequest) {
     !process.env.CRON_SECRET ||
     authHeader !== `Bearer ${process.env.CRON_SECRET}`
   ) {
+    console.info("cronの呼び出しがありましたが、認証に失敗しました。");
     return new Response("Unauthorized", { status: 401 });
   }
+  console.info("cronの呼び出しがありました。認証に成功しました。");
 
   const today = new Date();
   today.setUTCHours(0);
@@ -38,6 +40,7 @@ export async function GET(request: NextRequest) {
 
   const ndk = ServerNDKSingleton.instance;
 
+  console.info(`${submitteds.length}件の送信を開始しました。`);
   //投函物を扱う
   for (const submit of submitteds) {
     const event = new NDKEvent(ndk);
@@ -68,6 +71,7 @@ export async function GET(request: NextRequest) {
 
     await sleep(1000);
   }
+  console.info("送信が完了しました。");
 
   //60日以上前のレコードを削除
   const deleteDay = new Date();
