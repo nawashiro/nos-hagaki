@@ -54,17 +54,11 @@ export const middleware = async (request: NextRequest) => {
 
     const country = request.geo?.country;
     //cron実行でないならば
-    if (
-      !(
-        country &&
-        country == "US" &&
-        request.url == `${process.env.VERCEL_URL}/api/cron`
-      )
-    ) {
+    if (!(request.url == `${process.env.VERCEL_URL}/api/cron`)) {
       //日本国外をブロック
       if (country && country !== "JP") {
         console.info(
-          `IPアドレスが日本以外のため、アクセスを拒否しました。[request.ip = ${request.ip}]`
+          `IPアドレスが日本以外のため、アクセスを拒否しました。[request.ip = ${request.ip}] [country = ${country}] [request.url = ${request.url}]`
         );
         return new NextResponse(null, { status: 403 });
       }
