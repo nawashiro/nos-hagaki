@@ -3,6 +3,7 @@ import { ServerNDKSingleton } from "@/src/ServerNDKSingleton";
 import { NDKEvent, NDKRelay, NDKRelaySet } from "@nostr-dev-kit/ndk";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest } from "next/server";
+import { SimplePool } from "nostr-tools";
 
 const prisma = new PrismaClient();
 
@@ -43,25 +44,27 @@ export async function GET(request: NextRequest) {
   console.info(`${submitteds.length}件の送信を開始しました。`);
   //投函物を扱う
   for (const submit of submitteds) {
-    const event = new NDKEvent(ndk);
+    const pool = new SimplePool();
 
     //イベントに値を設定する
     if (!submit.event) continue;
-    event.kind = submit.event.kind;
-    event.id = submit.event.id;
-    event.content = submit.event.content;
-    event.pubkey = submit.event.pubkey;
-    event.created_at = submit.event.created_at;
-    event.tags = [["p", submit.event.address]];
-    event.sig = submit.event.sig;
 
-    let ndkRelay = new Set<NDKRelay>();
-    for (const relay of submit.relays) {
-      ndkRelay = new Set<NDKRelay>([...ndkRelay, new NDKRelay(relay)]);
-    }
+    const event = {
+      kind: submit.event.kind,
+      id: submit.event.id,
+      content: submit.event.content,
+      pubkey: submit.event.pubkey,
+      created_at: submit.event.created_at,
+      tags: [["p", submit.event.address]],
+      sig: submit.event.sig,
+    };
 
     //送信する
-    await event.publish(new NDKRelaySet(ndkRelay, ndk));
+    try {
+      await Promise.any(pool.publish(submit.relays, event));
+    } catch (e) {
+      console.info("送信に失敗しました。" + e);
+    }
 
     //送信済みにする
     await prisma.submittedData.update({
