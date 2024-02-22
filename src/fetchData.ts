@@ -10,8 +10,8 @@ import { Region, getRegions } from "./getRegions";
 import { create } from "zustand";
 import { NDKSingleton } from "./NDKSingleton";
 
-//コンテナ船の速度1056Km/dayを基準とする
-const kmPerDay = 1056;
+//地球を半周するのに一週間かかる速度
+const kmPerDay = 2857;
 
 interface State {
   regions: Region[];
