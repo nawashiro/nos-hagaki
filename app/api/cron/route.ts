@@ -18,7 +18,9 @@ export async function GET(request: NextRequest) {
     //USとJP以外からのアクセスを拒否
     const country = request.geo?.country;
     if (!(country == "US" || country == "JP")) {
-      console.info("USとJP以外からのcronへのアクセスをブロックしました。");
+      console.info(
+        `USとJP以外からのcronへのアクセスをブロックしました。[country = ${country}]`
+      );
       return new Response(null, { status: 403 });
     }
   }
