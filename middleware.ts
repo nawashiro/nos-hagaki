@@ -54,13 +54,7 @@ export const middleware = async (request: NextRequest) => {
 
     const country = request.geo?.country;
     //cron実行でないならば
-    if (
-      !(
-        country &&
-        country == "US" &&
-        request.url == `https://${process.env.VERCEL_URL}/api/cron`
-      )
-    ) {
+    if (request.url != `https://${process.env.VERCEL_URL}/api/cron`) {
       //日本国外をブロック
       if (country && country !== "JP") {
         console.info(
