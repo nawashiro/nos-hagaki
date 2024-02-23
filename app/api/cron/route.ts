@@ -14,6 +14,9 @@ function sleep(milliSeconds: number) {
 }
 
 export async function GET(request: NextRequest) {
+  if (request.geo?.country == "US") {
+    console.info("US以外からのcronへのアクセスをブロックしました。");
+  }
   //認証
   const authHeader = request.headers.get("authorization");
   if (
