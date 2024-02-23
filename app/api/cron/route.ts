@@ -14,17 +14,6 @@ function sleep(milliSeconds: number) {
 }
 
 export async function GET(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    //USとJP以外からのアクセスを拒否
-    const country = request.geo?.country;
-    if (!(country == "US" || country == "JP")) {
-      console.info(
-        `USとJP以外からのcronへのアクセスをブロックしました。[country = ${country}]`
-      );
-      return new Response(null, { status: 403 });
-    }
-  }
-
   //認証
   const authHeader = request.headers.get("authorization");
   if (
