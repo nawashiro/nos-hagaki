@@ -14,9 +14,15 @@ function sleep(milliSeconds: number) {
 }
 
 export async function GET(request: NextRequest) {
-  if (request.geo?.country == "US") {
-    console.info("US以外からのcronへのアクセスをブロックしました。");
+  if (process.env.NODE_ENV === "production") {
+    //USとJP以外からのアクセスを拒否
+    const country = request.geo?.country;
+    if (!(country == "US" || country == "JP")) {
+      console.info("USとJP以外からのcronへのアクセスをブロックしました。");
+      return new Response(null, { status: 403 });
+    }
   }
+
   //認証
   const authHeader = request.headers.get("authorization");
   if (

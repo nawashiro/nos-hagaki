@@ -53,6 +53,10 @@ export const middleware = async (request: NextRequest) => {
     }
 
     const country = request.geo?.country;
+
+    console.info(
+      `https://${process.env.VERCEL_URL}/api/cron としてホストされています。`
+    );
     //cron実行でないならば
     if (request.url != `https://${process.env.VERCEL_URL}/api/cron`) {
       //日本国外をブロック
