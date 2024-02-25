@@ -226,7 +226,13 @@ export default function Home() {
             <>
               <a
                 className="break-words text-neutral-400 underline hover:text-neutral-300"
-                href={myProfile.website}
+                href={(() => {
+                  if (/^https?:\/\/.*/.test(myProfile.website)) {
+                    return myProfile.website;
+                  } else {
+                    return `https://${myProfile.website}`;
+                  }
+                })()}
                 target="_blank"
               >
                 {myProfile.website}
