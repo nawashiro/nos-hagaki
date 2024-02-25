@@ -1,6 +1,5 @@
 "use server";
 import { ServerNDKSingleton } from "@/src/ServerNDKSingleton";
-import { NDKEvent, NDKRelay, NDKRelaySet } from "@nostr-dev-kit/ndk";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { SimplePool } from "nostr-tools";

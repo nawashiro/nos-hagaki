@@ -125,7 +125,7 @@ export const MultiLineBody = ({
                 <a
                   href={fragment}
                   target="_blank"
-                  className="text-neutral-400 underline hover:text-neutral-300"
+                  className="text-neutral-400 underline hover:text-neutral-300 break-all"
                 >
                   {fragment}
                   <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
