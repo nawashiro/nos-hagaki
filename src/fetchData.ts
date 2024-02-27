@@ -22,7 +22,7 @@ interface State {
   notes: NDKEvent[];
   daysRequireds: { daysRequired: number; pubkey: string }[];
   outboxRelays: string[];
-  kind3: NDKEvent;
+  kind3: NDKEvent | null;
 }
 
 interface Action {
@@ -31,7 +31,7 @@ interface Action {
   notesPush: (newNotesSet: Set<NDKEvent>) => void;
   followsPush: (newFollows: string[]) => void;
   daysRequiredsPush: (newDaysRequired: number, newPubkey: string) => void;
-  kind3Push: (newKind3: NDKEvent) => void;
+  kind3Push: (newKind3: NDKEvent | null) => void;
 }
 
 const useStore = create<State & Action>((set) => ({
@@ -136,6 +136,10 @@ export class FetchData {
     return this._follows;
   }
 
+  set follows(follows: string[]) {
+    useStore.setState({ follows: follows });
+  }
+
   get profiles() {
     return this._profiles;
   }
@@ -146,6 +150,18 @@ export class FetchData {
 
   get outboxRelays() {
     return this._outboxRelays;
+  }
+
+  get kind3() {
+    return this._kind3;
+  }
+
+  set kind3(event: NDKEvent | null) {
+    this.kind3Push(event);
+  }
+
+  get ndk() {
+    return this._ndk;
   }
 
   public publish = async (event: NDKEvent) => {
@@ -216,7 +232,7 @@ export class FetchData {
   public async getFollows(pubkey: string) {
     let newFollows = this._follows;
 
-    if (newFollows.length == 0) {
+    if (newFollows.length == 0 && this._kind3 != null) {
       const followsFilter: NDKFilter = {
         kinds: [3],
         authors: [pubkey],
@@ -226,11 +242,11 @@ export class FetchData {
         followsFilter
       );
 
+      this.kind3Push(followsEvent);
+
       if (!followsEvent) {
         return;
       }
-
-      this.kind3Push(followsEvent);
 
       newFollows = [];
       for (const value of followsEvent.tags) {

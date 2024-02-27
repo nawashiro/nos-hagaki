@@ -8,10 +8,14 @@ import { NDKEventList } from "@/src/NDKEventList";
 import { RegionContext } from "@/src/context";
 import { FetchData } from "@/src/fetchData";
 import { Region } from "@/src/getRegions";
-import { NDKFilter } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKFilter } from "@nostr-dev-kit/ndk";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { MdOutlineOpenInNew } from "react-icons/md";
+import {
+  MdOutlineOpenInNew,
+  MdOutlinePersonAddAlt,
+  MdOutlinePersonRemove,
+} from "react-icons/md";
 import { create } from "zustand";
 
 interface State {
@@ -33,6 +37,7 @@ export default function Author({ params }: { params: { pubkey: string } }) {
   const router = useRouter();
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<number>();
   const [timeline, setTimeline] = useState(new NDKEventList());
+  const [followValid, setFollowValid] = useState<boolean>();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
@@ -84,7 +89,11 @@ export default function Author({ params }: { params: { pubkey: string } }) {
       });
 
       //kind-3取得
-      fetchdata.getFollows(params.pubkey);
+      const follows = await fetchdata.getFollows(user.pubkey);
+
+      if (follows && follows.find((element) => element == params.pubkey)) {
+        setFollowValid(true);
+      }
 
       //kind-1取得
       const kind1Filter: NDKFilter = {
@@ -101,11 +110,76 @@ export default function Author({ params }: { params: { pubkey: string } }) {
     };
     fitstFetchdata();
   }, []);
+
+  const followSwitch = async () => {
+    const oldKind3 = fetchdata.kind3 || new NDKEvent();
+    const newKind3 = new NDKEvent();
+
+    newKind3.ndk = fetchdata.ndk;
+    newKind3.kind = 3;
+
+    if (followValid) {
+      newKind3.tags = oldKind3.tags.filter((n) => n[1] !== params.pubkey);
+      fetchdata.follows = fetchdata.follows.filter(
+        (n) => n[1] !== params.pubkey
+      );
+      setFollowValid(false);
+    } else {
+      newKind3.tags = [["p", params.pubkey], ...oldKind3.tags];
+      fetchdata.follows = [params.pubkey, ...fetchdata.follows];
+      setFollowValid(true);
+    }
+
+    fetchdata.kind3 = newKind3;
+    await newKind3.publish();
+
+    const request: IDBOpenDBRequest = indexedDB.open("ndk-cache");
+
+    request.onerror = () => {
+      console.error(`Database error`);
+    };
+
+    request.onsuccess = (event: Event) => {
+      const db: IDBDatabase = (event.target as IDBOpenDBRequest).result;
+      const transaction = db.transaction(["events"], "readwrite");
+      const store = transaction.objectStore("events");
+      const index = store.index("kind").getAllKeys(3);
+      console.log(index);
+      index.onsuccess = function () {
+        for (const i of index.result) {
+          console.log(i);
+          store.delete(i);
+        }
+      };
+    };
+  };
+
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <ProfileIcon picture={myProfile.picture} />
-
+        <div className="flex">
+          <ProfileIcon picture={myProfile.picture} />
+          <div className="flex-wrap ml-auto space-x-2">
+            <button
+              onClick={followSwitch}
+              className={`flex rounded-lg space-x-1 p-1 ${
+                followValid ? "bg-neutral-200" : "hover:bg-neutral-200"
+              }`}
+            >
+              {followValid ? (
+                <>
+                  <MdOutlinePersonRemove className="h-8 w-8" />
+                  <p className="mt-auto mb-auto">フォロー解除</p>
+                </>
+              ) : (
+                <>
+                  <MdOutlinePersonAddAlt className="h-8 w-8" />
+                  <p className="mt-auto mb-auto">フォロー</p>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
         <div>
           {myProfile.display_name && (
             <p className="font-bold">{myProfile.display_name}</p>
