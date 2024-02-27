@@ -2,7 +2,7 @@ Web 用の Nostr クライアント。
 
 ユーザーをランダムな地球上の場所に関連付け、二者間の距離に応じて連絡を遅延させる試み。
 
-https://noshagaki.vercel.app/
+https://nos-hagaki.vercel.app/
 
 ## ログイン方法
 

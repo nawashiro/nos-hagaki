@@ -10,10 +10,10 @@ export default function Infomation() {
           Github:<> </>
           <a
             className="break-words text-neutral-400 underline hover:text-neutral-300"
-            href={"https://github.com/nawashiro/noshagaki"}
+            href={"https://github.com/nawashiro/nos-hagaki"}
             target="_blank"
           >
-            nawashiro/noshagaki
+            nawashiro/nos-hagaki
             <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
           </a>
         </p>

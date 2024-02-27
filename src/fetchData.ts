@@ -22,6 +22,7 @@ interface State {
   notes: NDKEvent[];
   daysRequireds: { daysRequired: number; pubkey: string }[];
   outboxRelays: string[];
+  kind3: NDKEvent;
 }
 
 interface Action {
@@ -30,6 +31,7 @@ interface Action {
   notesPush: (newNotesSet: Set<NDKEvent>) => void;
   followsPush: (newFollows: string[]) => void;
   daysRequiredsPush: (newDaysRequired: number, newPubkey: string) => void;
+  kind3Push: (newKind3: NDKEvent) => void;
 }
 
 const useStore = create<State & Action>((set) => ({
@@ -41,6 +43,7 @@ const useStore = create<State & Action>((set) => ({
   notes: [],
   daysRequireds: [],
   outboxRelays: [],
+  kind3: new NDKEvent(),
   regionsPush: (newRegions) =>
     set((state) => ({
       regions: (() => {
@@ -105,6 +108,7 @@ const useStore = create<State & Action>((set) => ({
         return res;
       })(),
     })),
+  kind3Push: (newKind3) => set((state) => ({ kind3: newKind3 })),
 }));
 
 export class FetchData {
@@ -116,11 +120,13 @@ export class FetchData {
   private _notes = useStore((state) => state.notes);
   private _daysRequireds = useStore((state) => state.daysRequireds);
   private _outboxRelays = useStore((state) => state.outboxRelays);
+  private _kind3 = useStore((state) => state.kind3);
   private followsPush = useStore((state) => state.followsPush);
   private profilesPush = useStore((state) => state.profilesPush);
   private regionsPush = useStore((store) => store.regionsPush);
   private notesPush = useStore((store) => store.notesPush);
   private daysRequiredsPush = useStore((store) => store.daysRequiredsPush);
+  private kind3Push = useStore((state) => state.kind3Push);
 
   get user() {
     return this._user;
@@ -223,6 +229,8 @@ export class FetchData {
       if (!followsEvent) {
         return;
       }
+
+      this.kind3Push(followsEvent);
 
       newFollows = [];
       for (const value of followsEvent.tags) {

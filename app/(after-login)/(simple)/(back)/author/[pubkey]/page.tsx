@@ -83,6 +83,9 @@ export default function Author({ params }: { params: { pubkey: string } }) {
         myProfile: newMyProfile ? JSON.parse(newMyProfile.content) : {},
       });
 
+      //kind-3取得
+      fetchdata.getFollows(params.pubkey);
+
       //kind-1取得
       const kind1Filter: NDKFilter = {
         kinds: [1],
