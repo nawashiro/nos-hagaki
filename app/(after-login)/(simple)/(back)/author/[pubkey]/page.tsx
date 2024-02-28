@@ -37,7 +37,7 @@ export default function Author({ params }: { params: { pubkey: string } }) {
   const router = useRouter();
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<number>();
   const [timeline, setTimeline] = useState(new NDKEventList());
-  const [followValid, setFollowValid] = useState<boolean>();
+  const [followValid, setFollowValid] = useState<number>(0); //0:undefined, 1:follow, 2:unfollow
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
@@ -92,7 +92,9 @@ export default function Author({ params }: { params: { pubkey: string } }) {
       const follows = await fetchdata.getFollows(user.pubkey);
 
       if (follows && follows.find((element) => element == params.pubkey)) {
-        setFollowValid(true);
+        setFollowValid(1);
+      } else {
+        setFollowValid(2);
       }
 
       //kind-1取得
@@ -115,19 +117,19 @@ export default function Author({ params }: { params: { pubkey: string } }) {
     const oldKind3 = fetchdata.kind3 || new NDKEvent();
     const newKind3 = new NDKEvent();
 
+    setFollowValid(0);
+
     newKind3.ndk = fetchdata.ndk;
     newKind3.kind = 3;
 
-    if (followValid) {
+    if (followValid == 1) {
       newKind3.tags = oldKind3.tags.filter((n) => n[1] !== params.pubkey);
       fetchdata.follows = fetchdata.follows.filter(
         (n) => n[1] !== params.pubkey
       );
-      setFollowValid(false);
-    } else {
+    } else if (followValid == 2) {
       newKind3.tags = [["p", params.pubkey], ...oldKind3.tags];
       fetchdata.follows = [params.pubkey, ...fetchdata.follows];
-      setFollowValid(true);
     }
 
     fetchdata.kind3 = newKind3;
@@ -152,6 +154,12 @@ export default function Author({ params }: { params: { pubkey: string } }) {
         }
       };
     };
+
+    if (followValid == 1) {
+      setFollowValid(2);
+    } else if (followValid == 2) {
+      setFollowValid(1);
+    }
   };
 
   return (
@@ -162,16 +170,19 @@ export default function Author({ params }: { params: { pubkey: string } }) {
           <div className="flex-wrap ml-auto space-x-2">
             <button
               onClick={followSwitch}
+              disabled={!followValid}
               className={`flex rounded-lg space-x-1 p-1 ${
-                followValid ? "bg-neutral-200" : "hover:bg-neutral-200"
-              }`}
+                followValid == 1 && "bg-neutral-200"
+              } ${followValid == 2 && "hover:bg-neutral-200"}`}
             >
-              {followValid ? (
+              {followValid == 0 && <p className="mt-auto mb-auto">…</p>}
+              {followValid == 1 && (
                 <>
                   <MdOutlinePersonRemove className="h-8 w-8" />
                   <p className="mt-auto mb-auto">フォロー解除</p>
                 </>
-              ) : (
+              )}
+              {followValid == 2 && (
                 <>
                   <MdOutlinePersonAddAlt className="h-8 w-8" />
                   <p className="mt-auto mb-auto">フォロー</p>
