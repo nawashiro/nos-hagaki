@@ -1,7 +1,31 @@
+"use client";
+import { FetchData } from "@/src/fetchData";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { MdOutlineOpenInNew } from "react-icons/md";
 
 export default function Infomation() {
+  const fetchdata = new FetchData();
+  const router = useRouter();
+
+  useEffect(() => {
+    const firstFetch = async () => {
+      //NIP-07によるユーザ情報取得
+      let user;
+      try {
+        if (!localStorage.getItem("login")) {
+          throw new Error("未ログイン");
+        }
+        user = await fetchdata.getUser();
+      } catch {
+        router.push("/");
+        return;
+      }
+    };
+
+    firstFetch();
+  }, []);
   return (
     <div className="space-y-8">
       <h1 className="text-xl font-bold">NosHagakiについて</h1>

@@ -26,7 +26,7 @@ export default function RootLayout({
       </header>
       <main className="px-4 py-24 min-h-screen">
         <div className="fixed z-10 inset-0 top-24 left-4 w-12 lg:w-64 space-y-4">
-          <NavigationLink href="/home" title="ホーム">
+          <NavigationLink href="/home" title="プロフィール">
             <MdOutlineHome className="h-10 w-10 ml-1 my-auto" />
           </NavigationLink>
           <NavigationLink href="/mailbox" title="郵便受け">
