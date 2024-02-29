@@ -4,6 +4,7 @@ import {
   MdOutlineHome,
   MdOutlineInfo,
   MdOutlineMarkunreadMailbox,
+  MdOutlinePersonSearch,
   MdOutlineSettings,
 } from "react-icons/md";
 import HeaderLink from "@/components/headerLink";
@@ -31,6 +32,9 @@ export default function RootLayout({
           </NavigationLink>
           <NavigationLink href="/mailbox" title="郵便受け">
             <MdOutlineMarkunreadMailbox className="h-10 w-10 ml-1 my-auto" />
+          </NavigationLink>
+          <NavigationLink href="/search" title="ユーザー検索">
+            <MdOutlinePersonSearch className="h-10 w-10 ml-1 my-auto" />
           </NavigationLink>
           <NavigationLink href="/setting" title="設定">
             <MdOutlineSettings className="h-10 w-10 ml-1 my-auto" />

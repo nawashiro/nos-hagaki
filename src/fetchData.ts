@@ -4,6 +4,8 @@ import {
   NDKEvent,
   NDKFilter,
   NDKNip07Signer,
+  NDKRelay,
+  NDKRelaySet,
   NDKUser,
 } from "@nostr-dev-kit/ndk";
 import { Region, getRegions } from "./getRegions";
@@ -308,7 +310,14 @@ export class FetchData {
   //kind-1取得 複数
   public async getNotes(filter: NDKFilter) {
     const newEvents = await this._ndk.fetchEvents(filter);
-    this.notesPush(newEvents);
+
+    const kind = Array.from(newEvents)[0].kind;
+    if (kind == 1) {
+      this.notesPush(newEvents);
+    } else if (kind == 0) {
+      this.profilesPush(newEvents);
+    }
+
     return newEvents;
   }
 
@@ -339,7 +348,7 @@ export class FetchData {
   }
 
   //kind-0取得 単独
-  public async getAloneProfile(pubkey: string) {
+  public async getAloneProfile(pubkey: string, relays: string[] = []) {
     const newProfile = this._profiles.find(
       (element) => element.pubkey == pubkey
     );
@@ -350,7 +359,24 @@ export class FetchData {
       limit: 1,
     };
 
-    const profile = newProfile || (await this._ndk.fetchEvent(kind0Filter));
+    let profile: NDKEvent | null;
+    if (newProfile) {
+      profile = newProfile;
+    } else if (relays.length > 0) {
+      let relaySet = new Set<NDKRelay>();
+
+      for (const relayString of relays) {
+        relaySet = new Set([new NDKRelay(relayString), ...relaySet]);
+      }
+
+      profile = await this._ndk.fetchEvent(
+        kind0Filter,
+        undefined,
+        new NDKRelaySet(relaySet, this._ndk)
+      );
+    } else {
+      profile = await this._ndk.fetchEvent(kind0Filter);
+    }
 
     if (profile) this.profilesPush(new Set<NDKEvent>([profile]));
 
