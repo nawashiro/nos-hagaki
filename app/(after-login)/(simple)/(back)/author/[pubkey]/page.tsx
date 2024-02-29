@@ -8,21 +8,18 @@ import { NDKEventList } from "@/src/NDKEventList";
 import { RegionContext } from "@/src/context";
 import { FetchData } from "@/src/fetchData";
 import { Region } from "@/src/getRegions";
-import { NDKEvent, NDKFilter } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKFilter, NDKUser } from "@nostr-dev-kit/ndk";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  MdOutlineContentCopy,
   MdOutlineOpenInNew,
   MdOutlinePersonAddAlt,
   MdOutlinePersonRemove,
   MdOutlineQrCode,
 } from "react-icons/md";
 import { create } from "zustand";
-import { QRCodeSVG } from "qrcode.react";
-import Dialog from "@/components/dialog";
-import SimpleButton from "@/components/simpleButton";
 import { nip19 } from "nostr-tools";
+import IdScanAndCopyDialog from "@/components/idScanAndCopyDialog";
 
 interface State {
   filter: NDKFilter;
@@ -46,6 +43,7 @@ export default function Author({ params }: { params: { pubkey: string } }) {
   const [followValid, setFollowValid] = useState<number>(0); //0:undefined, 1:follow, 2:unfollow
   const [dialogViewFlag, setDialogViewFlag] = useState<boolean>(false);
   const npub = nip19.npubEncode(params.pubkey);
+  const [user, setUser] = useState<NDKUser>();
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
@@ -70,6 +68,7 @@ export default function Author({ params }: { params: { pubkey: string } }) {
           throw new Error("未ログイン");
         }
         user = await fetchdata.getUser();
+        setUser(user);
       } catch {
         router.push("/");
         return;
@@ -170,31 +169,13 @@ export default function Author({ params }: { params: { pubkey: string } }) {
 
   return (
     <>
-      <Dialog valid={dialogViewFlag}>
-        <h2 className="text-xl font-bold">IDをスキャン・コピー</h2>
-        <div className="space-y-4 w-48 ml-auto mr-auto">
-          <QRCodeSVG value={npub} className="h-48 w-48 ml-auto mr-auto" />
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(npub);
-            }}
-            className="w-48 flex text-neutral-500 px-2 rounded-xl outline-2 outline outline-neutral-200 hover:bg-neutral-200"
-          >
-            <p className="truncate">{npub}</p>
-            <div className="mt-auto mb-auto">
-              <MdOutlineContentCopy className="h-4 w-4" />
-            </div>
-          </button>
-        </div>
-
-        <SimpleButton
-          onClick={() => {
-            setDialogViewFlag(false);
-          }}
-        >
-          閉じる
-        </SimpleButton>
-      </Dialog>
+      <IdScanAndCopyDialog
+        dialogViewFlag={dialogViewFlag}
+        npub={npub}
+        onClick={() => {
+          setDialogViewFlag(false);
+        }}
+      />
       <div className="space-y-8">
         <div className="space-y-4">
           <div className="flex">
@@ -208,27 +189,29 @@ export default function Author({ params }: { params: { pubkey: string } }) {
               >
                 <MdOutlineQrCode className="h-8 w-8" />
               </button>
-              <button
-                onClick={followSwitch}
-                disabled={!followValid}
-                className={`flex rounded-lg space-x-1 p-1 ${
-                  followValid == 1 && "bg-neutral-200"
-                } ${followValid == 2 && "hover:bg-neutral-200"}`}
-              >
-                {followValid == 0 && <p className="mt-auto mb-auto">…</p>}
-                {followValid == 1 && (
-                  <>
-                    <MdOutlinePersonRemove className="h-8 w-8" />
-                    <p className="mt-auto mb-auto">フォロー解除</p>
-                  </>
-                )}
-                {followValid == 2 && (
-                  <>
-                    <MdOutlinePersonAddAlt className="h-8 w-8" />
-                    <p className="mt-auto mb-auto">フォロー</p>
-                  </>
-                )}
-              </button>
+              {user && params.pubkey != user.pubkey && (
+                <button
+                  onClick={followSwitch}
+                  disabled={!followValid}
+                  className={`flex rounded-lg space-x-1 p-1 ${
+                    followValid == 1 && "bg-neutral-200"
+                  } ${followValid == 2 && "hover:bg-neutral-200"}`}
+                >
+                  {followValid == 0 && <p className="mt-auto mb-auto">…</p>}
+                  {followValid == 1 && (
+                    <>
+                      <MdOutlinePersonRemove className="h-8 w-8" />
+                      <p className="mt-auto mb-auto">フォロー解除</p>
+                    </>
+                  )}
+                  {followValid == 2 && (
+                    <>
+                      <MdOutlinePersonAddAlt className="h-8 w-8" />
+                      <p className="mt-auto mb-auto">フォロー</p>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
           <div>
