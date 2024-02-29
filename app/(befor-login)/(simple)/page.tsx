@@ -1,7 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import SimpleButton from "@/components/simpleButton";
 import { FetchData } from "@/src/fetchData";
 import Link from "next/link";
 
@@ -31,6 +30,12 @@ export default function Home() {
         router.push("/home");
       }
     });
+  };
+
+  const signup = () => {
+    localStorage.setItem("privacy-policy-agree-date", new Date().toISOString());
+    localStorage.setItem("terms-of-use-agree-date", new Date().toISOString());
+    router.push("/signup");
   };
 
   return (
@@ -67,17 +72,30 @@ export default function Home() {
           に同意する
         </label>
       </div>
-      <button
-        onClick={login}
-        disabled={!checked}
-        className={
-          checked
-            ? "px-4 py-2 text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
-            : "px-4 py-2 text-neutral-500 rounded-[2rem] bg-neutral-200"
-        }
-      >
-        NIP-07ブラウザ拡張機能でログイン
-      </button>
+      <div className="space-y-4">
+        <button
+          onClick={login}
+          disabled={!checked}
+          className={
+            checked
+              ? "block px-4 py-2 text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+              : "block px-4 py-2 text-neutral-500 rounded-[2rem] bg-neutral-200"
+          }
+        >
+          NIP-07ブラウザ拡張機能でログイン
+        </button>
+        <button
+          onClick={signup}
+          disabled={!checked}
+          className={
+            checked
+              ? "block px-4 py-2 text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+              : "block px-4 py-2 text-neutral-500 rounded-[2rem] bg-neutral-200"
+          }
+        >
+          アカウント作成
+        </button>
+      </div>
     </div>
   );
 }

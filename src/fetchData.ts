@@ -311,12 +311,7 @@ export class FetchData {
   public async getNotes(filter: NDKFilter) {
     const newEvents = await this._ndk.fetchEvents(filter);
 
-    const kind = Array.from(newEvents)[0].kind;
-    if (kind == 1) {
-      this.notesPush(newEvents);
-    } else if (kind == 0) {
-      this.profilesPush(newEvents);
-    }
+    this.notesPush(newEvents);
 
     return newEvents;
   }
