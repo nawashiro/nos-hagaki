@@ -259,7 +259,9 @@ export default function Author({ params }: { params: { pubkey: string } }) {
                 <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
               </a>
             )}
-            {myProfile.about && <MultiLineBody body={myProfile.about} />}
+            {myProfile.about && (
+              <MultiLineBody body={myProfile.about} smallLeading={true} />
+            )}
           </div>
         </div>
 

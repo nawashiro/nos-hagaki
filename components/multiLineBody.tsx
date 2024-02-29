@@ -11,9 +11,11 @@ import Link from "next/link";
 export const MultiLineBody = ({
   body,
   pointerEventNone = false,
+  smallLeading = false,
 }: {
   body: string;
   pointerEventNone?: boolean;
+  smallLeading?: boolean;
 }) => {
   const fetchdata = new FetchData();
   //const router = useRouter();
@@ -162,8 +164,8 @@ export const MultiLineBody = ({
   });
   return (
     <div
-      className={`leading-9 break-words${
-        pointerEventNone && " pointer-events-none"
+      className={`break-words ${pointerEventNone && "pointer-events-none"} ${
+        smallLeading || "leading-9"
       }`}
     >
       {texts}
