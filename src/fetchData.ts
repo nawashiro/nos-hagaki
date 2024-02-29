@@ -4,6 +4,8 @@ import {
   NDKEvent,
   NDKFilter,
   NDKNip07Signer,
+  NDKRelay,
+  NDKRelaySet,
   NDKUser,
 } from "@nostr-dev-kit/ndk";
 import { Region, getRegions } from "./getRegions";
@@ -22,6 +24,7 @@ interface State {
   notes: NDKEvent[];
   daysRequireds: { daysRequired: number; pubkey: string }[];
   outboxRelays: string[];
+  kind3: NDKEvent | null;
 }
 
 interface Action {
@@ -30,6 +33,7 @@ interface Action {
   notesPush: (newNotesSet: Set<NDKEvent>) => void;
   followsPush: (newFollows: string[]) => void;
   daysRequiredsPush: (newDaysRequired: number, newPubkey: string) => void;
+  kind3Push: (newKind3: NDKEvent | null) => void;
 }
 
 const useStore = create<State & Action>((set) => ({
@@ -41,6 +45,7 @@ const useStore = create<State & Action>((set) => ({
   notes: [],
   daysRequireds: [],
   outboxRelays: [],
+  kind3: new NDKEvent(),
   regionsPush: (newRegions) =>
     set((state) => ({
       regions: (() => {
@@ -105,6 +110,7 @@ const useStore = create<State & Action>((set) => ({
         return res;
       })(),
     })),
+  kind3Push: (newKind3) => set((state) => ({ kind3: newKind3 })),
 }));
 
 export class FetchData {
@@ -116,11 +122,13 @@ export class FetchData {
   private _notes = useStore((state) => state.notes);
   private _daysRequireds = useStore((state) => state.daysRequireds);
   private _outboxRelays = useStore((state) => state.outboxRelays);
+  private _kind3 = useStore((state) => state.kind3);
   private followsPush = useStore((state) => state.followsPush);
   private profilesPush = useStore((state) => state.profilesPush);
   private regionsPush = useStore((store) => store.regionsPush);
   private notesPush = useStore((store) => store.notesPush);
   private daysRequiredsPush = useStore((store) => store.daysRequiredsPush);
+  private kind3Push = useStore((state) => state.kind3Push);
 
   get user() {
     return this._user;
@@ -128,6 +136,10 @@ export class FetchData {
 
   get follows() {
     return this._follows;
+  }
+
+  set follows(follows: string[]) {
+    useStore.setState({ follows: follows });
   }
 
   get profiles() {
@@ -140,6 +152,18 @@ export class FetchData {
 
   get outboxRelays() {
     return this._outboxRelays;
+  }
+
+  get kind3() {
+    return this._kind3;
+  }
+
+  set kind3(event: NDKEvent | null) {
+    this.kind3Push(event);
+  }
+
+  get ndk() {
+    return this._ndk;
   }
 
   public publish = async (event: NDKEvent) => {
@@ -210,7 +234,7 @@ export class FetchData {
   public async getFollows(pubkey: string) {
     let newFollows = this._follows;
 
-    if (newFollows.length == 0) {
+    if (newFollows.length == 0 && this._kind3 != null) {
       const followsFilter: NDKFilter = {
         kinds: [3],
         authors: [pubkey],
@@ -219,6 +243,8 @@ export class FetchData {
       const followsEvent: NDKEvent | null = await this._ndk.fetchEvent(
         followsFilter
       );
+
+      this.kind3Push(followsEvent);
 
       if (!followsEvent) {
         return;
@@ -284,7 +310,14 @@ export class FetchData {
   //kind-1取得 複数
   public async getNotes(filter: NDKFilter) {
     const newEvents = await this._ndk.fetchEvents(filter);
-    this.notesPush(newEvents);
+
+    const kind = Array.from(newEvents)[0].kind;
+    if (kind == 1) {
+      this.notesPush(newEvents);
+    } else if (kind == 0) {
+      this.profilesPush(newEvents);
+    }
+
     return newEvents;
   }
 
@@ -315,7 +348,7 @@ export class FetchData {
   }
 
   //kind-0取得 単独
-  public async getAloneProfile(pubkey: string) {
+  public async getAloneProfile(pubkey: string, relays: string[] = []) {
     const newProfile = this._profiles.find(
       (element) => element.pubkey == pubkey
     );
@@ -326,7 +359,24 @@ export class FetchData {
       limit: 1,
     };
 
-    const profile = newProfile || (await this._ndk.fetchEvent(kind0Filter));
+    let profile: NDKEvent | null;
+    if (newProfile) {
+      profile = newProfile;
+    } else if (relays.length > 0) {
+      let relaySet = new Set<NDKRelay>();
+
+      for (const relayString of relays) {
+        relaySet = new Set([new NDKRelay(relayString), ...relaySet]);
+      }
+
+      profile = await this._ndk.fetchEvent(
+        kind0Filter,
+        undefined,
+        new NDKRelaySet(relaySet, this._ndk)
+      );
+    } else {
+      profile = await this._ndk.fetchEvent(kind0Filter);
+    }
 
     if (profile) this.profilesPush(new Set<NDKEvent>([profile]));
 

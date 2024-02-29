@@ -1,7 +1,7 @@
 "use client";
 
 import { FetchData } from "@/src/fetchData";
-import { useRouter } from "next/navigation";
+//import { useRouter } from "next/navigation";
 import { Fragment, useEffect } from "react";
 import { MdOutlineOpenInNew } from "react-icons/md";
 import { nip19 } from "nostr-tools";
@@ -11,23 +11,16 @@ import Link from "next/link";
 export const MultiLineBody = ({
   body,
   pointerEventNone = false,
+  smallLeading = false,
 }: {
   body: string;
   pointerEventNone?: boolean;
+  smallLeading?: boolean;
 }) => {
   const fetchdata = new FetchData();
-  const router = useRouter();
-  const urlPattern = new RegExp(
-    "^(https?:\\/\\/)?" + // protocol
-      "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name and extension
-      "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
-      "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
-      "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
-      "(\\#[-a-z\\d_]*)?$",
-    "i"
-  ); // fragment locator
-  const npubPattern = new RegExp("nostr:npub[a-z0-9]", "i");
-  const notePattern = new RegExp("nostr:note[a-z0-9]", "i");
+  //const router = useRouter();
+  const urlPattern = /^https?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+/;
+  const nip19Pattern = /^nostr:[a-z0-9]/;
 
   useEffect(() => {
     const firstFetchData = async () => {
@@ -35,10 +28,17 @@ export const MultiLineBody = ({
 
       let npubUrls = new Set<string>();
       body.split(/\n| /).map((fragment) => {
-        if (npubPattern.test(fragment)) {
-          const { data } = nip19.decode(fragment.slice(6));
-          if (typeof data === "string")
-            npubUrls = new Set<string>([...npubUrls, data]);
+        if (nip19Pattern.test(fragment)) {
+          const { data, type } = nip19.decode(fragment.slice(6));
+          let npub;
+          if (type == "npub" || type == "nprofile") {
+            if (type == "npub") {
+              npub = data;
+            } else {
+              npub = data.pubkey;
+            }
+            npubUrls = new Set<string>([...npubUrls, npub]);
+          }
         }
       });
 
@@ -65,51 +65,53 @@ export const MultiLineBody = ({
     firstFetchData();
   }, []);
 
-  //ユーザー名
-  const UserName = ({ fragment }: { fragment: string }) => {
-    const slicedFragment = fragment.slice(6);
-    try {
-      const { data } = nip19.decode(slicedFragment);
-
-      if (typeof data !== "string") throw new Error("decode error");
-
-      const profileEvent: NDKEvent | undefined = (() => {
-        for (const value of fetchdata.profiles) {
-          if (value.pubkey == data) {
-            return value;
-          }
-        }
-      })();
-      const profile = profileEvent ? JSON.parse(profileEvent.content) : {};
-      return (
-        <Link
-          href={`/author/${data}`}
-          className="text-neutral-400 hover:text-neutral-300"
-        >
-          @{profile?.name || slicedFragment}
-        </Link>
-      );
-    } catch {
-      return <>{fragment}</>;
-    }
-  };
-
   //ノート
-  const Note = ({ fragment }: { fragment: string }) => {
-    const slicedFragment = fragment.slice(6);
+  const Nip19 = ({ fragment }: { fragment: string }) => {
+    const slicedFragment = fragment.replace("nostr:", "");
+
     try {
-      const { data } = nip19.decode(slicedFragment);
+      const { data, type } = nip19.decode(slicedFragment);
 
-      if (typeof data !== "string") throw new Error("decode error");
+      if (type == "note" || type == "nevent") {
+        let id;
+        if (type == "note") {
+          id = data;
+        } else if (type == "nevent") {
+          id = data.id;
+        }
+        return (
+          <Link
+            href={`/post/${id}`}
+            className="text-neutral-400 break-all hover:text-neutral-300"
+          >
+            {slicedFragment.slice(0, 12)}
+          </Link>
+        );
+      } else if (type == "npub" || type == "nprofile") {
+        let npub;
+        if (type == "npub") {
+          npub = data;
+        } else {
+          npub = data.pubkey;
+        }
 
-      return (
-        <Link
-          href={`/post/${data}`}
-          className="text-neutral-400 hover:text-neutral-300"
-        >
-          {slicedFragment.slice(0, 12)}
-        </Link>
-      );
+        const profileEvent: NDKEvent | undefined = (() => {
+          for (const value of fetchdata.profiles) {
+            if (value.pubkey == npub) {
+              return value;
+            }
+          }
+        })();
+        const profile = profileEvent ? JSON.parse(profileEvent.content) : {};
+        return (
+          <Link
+            href={`/author/${npub}`}
+            className="text-neutral-400 break-all hover:text-neutral-300"
+          >
+            @{profile?.name || slicedFragment}
+          </Link>
+        );
+      }
     } catch {
       return <>{fragment}</>;
     }
@@ -120,12 +122,19 @@ export const MultiLineBody = ({
       <p key={index}>
         {item.split(" ").map((fragment, fragmentIndex) => {
           if (urlPattern.test(fragment)) {
+            console.log(`url ${fragment}`);
             return (
               <Fragment key={fragmentIndex}>
                 <a
-                  href={fragment}
+                  href={(() => {
+                    if (RegExp("^(https|http)://.*").test(fragment)) {
+                      return fragment;
+                    } else {
+                      return `https://${fragment}`;
+                    }
+                  })()}
                   target="_blank"
-                  className="text-neutral-400 underline hover:text-neutral-300"
+                  className="text-neutral-400 underline hover:text-neutral-300 break-all"
                 >
                   {fragment}
                   <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
@@ -133,17 +142,10 @@ export const MultiLineBody = ({
                 <> </>
               </Fragment>
             );
-          } else if (npubPattern.test(fragment)) {
+          } else if (nip19Pattern.test(fragment)) {
             return (
               <Fragment key={fragmentIndex}>
-                <UserName fragment={fragment} />
-                <> </>
-              </Fragment>
-            );
-          } else if (notePattern.test(fragment)) {
-            return (
-              <Fragment key={fragmentIndex}>
-                <Note fragment={fragment} />
+                <Nip19 fragment={fragment} />
                 <> </>
               </Fragment>
             );
@@ -162,8 +164,8 @@ export const MultiLineBody = ({
   });
   return (
     <div
-      className={`leading-9 break-words${
-        pointerEventNone && " pointer-events-none"
+      className={`break-words ${pointerEventNone && "pointer-events-none"} ${
+        smallLeading || "leading-9"
       }`}
     >
       {texts}

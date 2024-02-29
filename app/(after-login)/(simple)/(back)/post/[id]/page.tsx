@@ -4,7 +4,7 @@ import { MultiLineBody } from "@/components/multiLineBody";
 import { FetchData } from "@/src/fetchData";
 import { Region } from "@/src/getRegions";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { nip19 } from "nostr-tools";
 import { useEffect, useState } from "react";
@@ -65,13 +65,18 @@ export default function Post({ params }: { params: { id: string } }) {
           <MultiLineBody body={kind1Event?.content} />
 
           <div>
-            <div className="flex space-x-2">
-              {profile.display_name && (
-                <p className="font-bold">{profile.display_name}</p>
-              )}
-              <p className="text-neutral-500 break-all">
-                @{profile.name || nip19.npubEncode(kind1Event.pubkey)}
-              </p>
+            <div className="">
+              <Link
+                href={`/author/${kind1Event.pubkey}`}
+                className="flex w-fit space-x-2"
+              >
+                {profile.display_name && (
+                  <p className="font-bold">{profile.display_name}</p>
+                )}
+                <p className="text-neutral-500 break-all">
+                  @{profile.name || nip19.npubEncode(kind1Event.pubkey)}
+                </p>
+              </Link>
             </div>
             <p className="text-neutral-500">
               {kind1Event.created_at &&
