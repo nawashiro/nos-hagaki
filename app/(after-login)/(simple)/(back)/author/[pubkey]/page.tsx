@@ -12,11 +12,17 @@ import { NDKEvent, NDKFilter } from "@nostr-dev-kit/ndk";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  MdOutlineContentCopy,
   MdOutlineOpenInNew,
   MdOutlinePersonAddAlt,
   MdOutlinePersonRemove,
+  MdOutlineQrCode,
 } from "react-icons/md";
 import { create } from "zustand";
+import { QRCodeSVG } from "qrcode.react";
+import Dialog from "@/components/dialog";
+import SimpleButton from "@/components/simpleButton";
+import { nip19 } from "nostr-tools";
 
 interface State {
   filter: NDKFilter;
@@ -38,6 +44,8 @@ export default function Author({ params }: { params: { pubkey: string } }) {
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<number>();
   const [timeline, setTimeline] = useState(new NDKEventList());
   const [followValid, setFollowValid] = useState<number>(0); //0:undefined, 1:follow, 2:unfollow
+  const [dialogViewFlag, setDialogViewFlag] = useState<boolean>(false);
+  const npub = nip19.npubEncode(params.pubkey);
 
   //タイムライン取得
   const getEvent = async (filter: NDKFilter) => {
@@ -146,10 +154,8 @@ export default function Author({ params }: { params: { pubkey: string } }) {
       const transaction = db.transaction(["events"], "readwrite");
       const store = transaction.objectStore("events");
       const index = store.index("kind").getAllKeys(3);
-      console.log(index);
       index.onsuccess = function () {
         for (const i of index.result) {
-          console.log(i);
           store.delete(i);
         }
       };
@@ -163,91 +169,126 @@ export default function Author({ params }: { params: { pubkey: string } }) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <div className="flex">
-          <ProfileIcon picture={myProfile.picture} />
-          <div className="flex-wrap ml-auto space-x-2">
-            <button
-              onClick={followSwitch}
-              disabled={!followValid}
-              className={`flex rounded-lg space-x-1 p-1 ${
-                followValid == 1 && "bg-neutral-200"
-              } ${followValid == 2 && "hover:bg-neutral-200"}`}
-            >
-              {followValid == 0 && <p className="mt-auto mb-auto">…</p>}
-              {followValid == 1 && (
-                <>
-                  <MdOutlinePersonRemove className="h-8 w-8" />
-                  <p className="mt-auto mb-auto">フォロー解除</p>
-                </>
-              )}
-              {followValid == 2 && (
-                <>
-                  <MdOutlinePersonAddAlt className="h-8 w-8" />
-                  <p className="mt-auto mb-auto">フォロー</p>
-                </>
-              )}
-            </button>
+    <>
+      <Dialog valid={dialogViewFlag}>
+        <h2 className="text-xl font-bold">IDをスキャン・コピー</h2>
+        <div className="space-y-4 w-48 ml-auto mr-auto">
+          <QRCodeSVG value={npub} className="h-48 w-48 ml-auto mr-auto" />
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(npub);
+            }}
+            className="w-48 flex text-neutral-500 px-2 rounded-xl outline-2 outline outline-neutral-200 hover:bg-neutral-200"
+          >
+            <p className="truncate">{npub}</p>
+            <div className="mt-auto mb-auto">
+              <MdOutlineContentCopy className="h-4 w-4" />
+            </div>
+          </button>
+        </div>
+
+        <SimpleButton
+          onClick={() => {
+            setDialogViewFlag(false);
+          }}
+        >
+          閉じる
+        </SimpleButton>
+      </Dialog>
+      <div className="space-y-8">
+        <div className="space-y-4">
+          <div className="flex">
+            <ProfileIcon picture={myProfile.picture} />
+            <div className="flex ml-auto space-x-2 items-start">
+              <button
+                onClick={() => {
+                  setDialogViewFlag(true);
+                }}
+                className="flex rounded-lg space-x-1 p-1 hover:bg-neutral-200"
+              >
+                <MdOutlineQrCode className="h-8 w-8" />
+              </button>
+              <button
+                onClick={followSwitch}
+                disabled={!followValid}
+                className={`flex rounded-lg space-x-1 p-1 ${
+                  followValid == 1 && "bg-neutral-200"
+                } ${followValid == 2 && "hover:bg-neutral-200"}`}
+              >
+                {followValid == 0 && <p className="mt-auto mb-auto">…</p>}
+                {followValid == 1 && (
+                  <>
+                    <MdOutlinePersonRemove className="h-8 w-8" />
+                    <p className="mt-auto mb-auto">フォロー解除</p>
+                  </>
+                )}
+                {followValid == 2 && (
+                  <>
+                    <MdOutlinePersonAddAlt className="h-8 w-8" />
+                    <p className="mt-auto mb-auto">フォロー</p>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          <div>
+            {myProfile.display_name && (
+              <p className="font-bold">{myProfile.display_name}</p>
+            )}
+            {fetchdata.user && (
+              <p className="text-neutral-500 break-all">
+                @{myProfile.name || fetchdata.user.npub}
+              </p>
+            )}
+          </div>
+
+          <div>
+            {myProfile.website && (
+              <a
+                className="break-words text-neutral-400 underline hover:text-neutral-300"
+                href={(() => {
+                  if (/^https?:\/\/.*/.test(myProfile.website)) {
+                    return myProfile.website;
+                  } else {
+                    return `https://${myProfile.website}`;
+                  }
+                })()}
+                target="_blank"
+              >
+                {myProfile.website}
+                <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
+              </a>
+            )}
+            {myProfile.about && <MultiLineBody body={myProfile.about} />}
           </div>
         </div>
-        <div>
-          {myProfile.display_name && (
-            <p className="font-bold">{myProfile.display_name}</p>
+
+        <div className="space-y-4">
+          <h2 className="font-bold">すみか</h2>
+          {region && (
+            <RegionContext.Provider value={region}>
+              <MapWrapper />
+            </RegionContext.Provider>
           )}
-          {fetchdata.user && (
-            <p className="text-neutral-500 break-all">
-              @{myProfile.name || fetchdata.user.npub}
-            </p>
-          )}
+          <div>
+            <p>{region?.countryName?.ja || "どこか…"}</p>
+            {estimatedDeliveryTime && (
+              <div className="space-x-2 flex">
+                <p className="font-normal">かかる日数:</p>
+                <p>{estimatedDeliveryTime}日</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div>
-          {myProfile.website && (
-            <a
-              className="break-words text-neutral-400 underline hover:text-neutral-300"
-              href={(() => {
-                if (/^https?:\/\/.*/.test(myProfile.website)) {
-                  return myProfile.website;
-                } else {
-                  return `https://${myProfile.website}`;
-                }
-              })()}
-              target="_blank"
-            >
-              {myProfile.website}
-              <MdOutlineOpenInNew className="inline-block h-4 w-4 mb-[7.2px]" />
-            </a>
-          )}
-          {myProfile.about && <MultiLineBody body={myProfile.about} />}
-        </div>
+        <Timeline
+          regions={fetchdata.regions}
+          profiles={fetchdata.profiles}
+          getMoreEvent={getMoreEvent}
+          timeline={timeline}
+          moreLoadButtonValid={moreLoadButtonValid}
+        />
       </div>
-
-      <div className="space-y-4">
-        <h2 className="font-bold">すみか</h2>
-        {region && (
-          <RegionContext.Provider value={region}>
-            <MapWrapper />
-          </RegionContext.Provider>
-        )}
-        <div>
-          <p>{region?.countryName?.ja || "どこか…"}</p>
-          {estimatedDeliveryTime && (
-            <div className="space-x-2 flex">
-              <p className="font-normal">かかる日数:</p>
-              <p>{estimatedDeliveryTime}日</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <Timeline
-        regions={fetchdata.regions}
-        profiles={fetchdata.profiles}
-        getMoreEvent={getMoreEvent}
-        timeline={timeline}
-        moreLoadButtonValid={moreLoadButtonValid}
-      />
-    </div>
+    </>
   );
 }

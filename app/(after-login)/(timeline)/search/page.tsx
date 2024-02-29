@@ -2,9 +2,10 @@
 import ProfileButton from "@/components/profileButton";
 import { FetchData } from "@/src/fetchData";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { nip19 } from "nostr-tools";
 import { create } from "zustand";
+import { NDKUser } from "@nostr-dev-kit/ndk";
 
 interface State {
   npub: string;
@@ -20,6 +21,7 @@ export default function Setting() {
   const fetchdata = new FetchData();
   const router = useRouter();
   const { npub, pubkey } = useStore();
+  const [user, setUser] = useState<NDKUser>();
 
   useEffect(() => {
     const firstFetchData = async () => {
@@ -30,6 +32,7 @@ export default function Setting() {
           throw new Error("未ログイン");
         }
         user = await fetchdata.getUser();
+        setUser(user);
       } catch {
         router.push("/");
         return;
@@ -42,7 +45,7 @@ export default function Setting() {
   }, []);
 
   const search = async () => {
-    if (!npub) {
+    if (!npub || !user) {
       return;
     }
     //kind-0取得
@@ -61,6 +64,8 @@ export default function Setting() {
     }
     useStore.setState({ pubkey: pubkey });
     await fetchdata.getAloneProfile(pubkey, relays);
+    await fetchdata.getAloneRegion(pubkey);
+    await fetchdata.getEstimatedDeliveryTime(user.pubkey, pubkey);
   };
 
   return (
