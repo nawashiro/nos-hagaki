@@ -146,6 +146,10 @@ export class FetchData {
     return this._profiles;
   }
 
+  set profiles(events: NDKEvent[]) {
+    useStore.setState({ profiles: events });
+  }
+
   get regions() {
     return this._regions;
   }

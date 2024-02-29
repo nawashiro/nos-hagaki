@@ -10,7 +10,11 @@ import { Region } from "@/src/getRegions";
 import MapWrapper from "@/components/mapWrapper";
 import { NDKEventList } from "@/src/NDKEventList";
 import { create } from "zustand";
-import { MdOutlineOpenInNew, MdOutlineQrCode } from "react-icons/md";
+import {
+  MdOutlineEdit,
+  MdOutlineOpenInNew,
+  MdOutlineQrCode,
+} from "react-icons/md";
 import ProfileIcon from "@/components/profileIcon";
 import { FetchData } from "@/src/fetchData";
 import { useRouter } from "next/navigation";
@@ -233,6 +237,13 @@ export default function Home() {
               >
                 <MdOutlineQrCode className="h-8 w-8" />
               </button>
+              <Link
+                href={"/profile-edit"}
+                className={"flex rounded-lg space-x-1 p-1 hover:bg-neutral-200"}
+              >
+                <MdOutlineEdit className="h-8 w-8" />
+                <p className="mt-auto mb-auto">プロフィールを編集</p>
+              </Link>
             </div>
           </div>
           <div>
