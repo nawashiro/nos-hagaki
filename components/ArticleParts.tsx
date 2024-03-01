@@ -9,7 +9,18 @@ export function H2({
   ...params
 }: React.HTMLAttributes<HTMLHeadingElement> & { children: React.ReactNode }) {
   return (
-    <h2 {...params} className="font-bold my-8">
+    <h2 {...params} className="font-bold my-8 text-lg">
+      {children}
+    </h2>
+  );
+}
+
+export function H3({
+  children,
+  ...params
+}: React.HTMLAttributes<HTMLHeadingElement> & { children: React.ReactNode }) {
+  return (
+    <h2 {...params} className="font-bold my-4">
       {children}
     </h2>
   );
@@ -38,5 +49,23 @@ export function LinkWrapper({
     <Link href={href} className="text-neutral-400 hover:text-neutral-300">
       {children}
     </Link>
+  );
+}
+
+export function A({
+  children,
+  href,
+}: {
+  children: React.ReactNode;
+  href: string;
+}) {
+  return (
+    <a
+      href={href}
+      className="underline text-neutral-400 hover:text-neutral-300"
+      target="_blank"
+    >
+      {children}
+    </a>
   );
 }
