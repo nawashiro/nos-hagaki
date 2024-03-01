@@ -68,13 +68,13 @@ export default function Edit() {
       <h2 className="text-xl font-bold">プロフィールを編集</h2>
       <form onSubmit={handleSubmit} className="space-y-4 w-full">
         <div>
-          <label>アイコン画像のurl</label>
+          <label>アイコン画像のURL</label>
           <br />
           <input
             type="text"
             name="picture"
             defaultValue={myProfile?.picture || ""}
-            placeholder="https://example.com/bulldozer_with_computer.png"
+            placeholder="https://example.com/picture.png"
             className="rounded-lg outline-2 outline outline-neutral-200 px-2 py-1 w-full"
           />
         </div>
@@ -84,7 +84,7 @@ export default function Edit() {
           <input
             type="text"
             name="display_name"
-            placeholder="田中角栄"
+            placeholder="display name"
             defaultValue={myProfile?.display_name || ""}
             className="rounded-lg outline-2 outline outline-neutral-200 px-2 py-1 w-full"
           />
@@ -95,7 +95,7 @@ export default function Edit() {
           <input
             type="text"
             name="name"
-            placeholder="Kakuei_Tanaka"
+            placeholder="name"
             defaultValue={myProfile?.name || ""}
             className="rounded-lg outline-2 outline outline-neutral-200 px-2 py-1 w-full"
           />
@@ -106,7 +106,7 @@ export default function Edit() {
           <input
             type="text"
             name="website"
-            placeholder="https://www.kantei.go.jp/jp/rekidainaikaku/065.html"
+            placeholder="https://example.com"
             defaultValue={myProfile?.website || ""}
             className="rounded-lg outline-2 outline outline-neutral-200 px-2 py-1 w-full"
           />
@@ -117,7 +117,7 @@ export default function Edit() {
           <textarea
             name="about"
             defaultValue={myProfile?.about || ""}
-            placeholder="私が田中角栄であります。皆さんもご存じの通り、高等小学校卒業であります。"
+            placeholder="わたくしは今日死ぬのであるか 東にうかんだ黒と白との積雲製の冠を わたくしはとっていゝのであるか"
             className="rounded-lg outline-2 outline outline-neutral-200 px-2 py-1 w-full"
           />
         </div>
