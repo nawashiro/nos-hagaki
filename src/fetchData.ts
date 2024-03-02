@@ -235,10 +235,10 @@ export class FetchData {
   }
 
   //kind-3取得
-  public async getFollows(pubkey: string) {
+  public async getFollows(pubkey: string, cache = true) {
     let newFollows = this._follows;
 
-    if (newFollows.length == 0 && this._kind3 != null) {
+    if (!cache || (newFollows.length == 0 && this._kind3 != null)) {
       const followsFilter: NDKFilter = {
         kinds: [3],
         authors: [pubkey],
@@ -248,7 +248,9 @@ export class FetchData {
         followsFilter
       );
 
-      this.kind3Push(followsEvent);
+      if (cache) {
+        this.kind3Push(followsEvent);
+      }
 
       if (!followsEvent) {
         return;
@@ -261,7 +263,9 @@ export class FetchData {
         }
       }
 
-      this.followsPush(newFollows);
+      if (cache) {
+        this.followsPush(newFollows);
+      }
     }
 
     return newFollows;
