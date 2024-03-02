@@ -1,7 +1,7 @@
 "use client";
 const pointInPolygon = require("point-in-polygon");
 
-interface GeoJSONFeature {
+export interface GeoJSONFeature {
   type: string;
   properties: {
     iso: string; // ISO 3166-1 alpha-2 code
@@ -23,12 +23,10 @@ export interface CountryName {
 export function getCountryName(
   latitude: number,
   longitude: number,
-  geojsonData: any
+  features: GeoJSONFeature[]
 ): CountryName | null {
   try {
-    const geojson: GeoJSONFeature[] = geojsonData.features;
-
-    for (const feature of geojson) {
+    for (const feature of features) {
       if (isPointInCountry(latitude, longitude, feature.geometry.coordinates)) {
         return feature.properties;
       }

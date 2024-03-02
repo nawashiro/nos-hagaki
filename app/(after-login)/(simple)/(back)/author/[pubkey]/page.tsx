@@ -20,6 +20,7 @@ import {
 import { create } from "zustand";
 import { nip19 } from "nostr-tools";
 import IdScanAndCopyDialog from "@/components/idScanAndCopyDialog";
+import Link from "next/link";
 
 interface State {
   filter: NDKFilter;
@@ -246,6 +247,12 @@ export default function Author({ params }: { params: { pubkey: string } }) {
               <MultiLineBody body={myProfile.about} smallLeading={true} />
             )}
           </div>
+          <Link
+            href={`/follows/${params.pubkey}`}
+            className="block w-fit flex-wrap px-4 py-2 text-neutral-500 outline-2 outline outline-neutral-200 rounded-[2rem] hover:bg-neutral-200"
+          >
+            フォロー一覧
+          </Link>
         </div>
 
         <div className="space-y-4">

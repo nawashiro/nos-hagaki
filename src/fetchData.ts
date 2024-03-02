@@ -16,9 +16,9 @@ import { NDKSingleton } from "./NDKSingleton";
 const kmPerDay = 2857;
 
 interface State {
-  regions: Region[];
+  regions: Set<Region>;
   profiles: NDKEvent[];
-  follows: string[];
+  follows: Set<string>;
   user: NDKUser | undefined;
   ndk: NDKSingleton;
   notes: NDKEvent[];
@@ -28,18 +28,18 @@ interface State {
 }
 
 interface Action {
-  regionsPush: (newRegions: Region[]) => void;
+  regionsPush: (newRegions: Set<Region>) => void;
   profilesPush: (newProfilesSet: Set<NDKEvent>) => void;
   notesPush: (newNotesSet: Set<NDKEvent>) => void;
-  followsPush: (newFollows: string[]) => void;
+  followsPush: (newFollows: Set<string>) => void;
   daysRequiredsPush: (newDaysRequired: number, newPubkey: string) => void;
   kind3Push: (newKind3: NDKEvent | null) => void;
 }
 
 const useStore = create<State & Action>((set) => ({
-  regions: [],
+  regions: new Set<Region>([]),
   profiles: [],
-  follows: [],
+  follows: new Set<string>([]),
   user: undefined,
   ndk: NDKSingleton.instance,
   notes: [],
@@ -48,17 +48,7 @@ const useStore = create<State & Action>((set) => ({
   kind3: new NDKEvent(),
   regionsPush: (newRegions) =>
     set((state) => ({
-      regions: (() => {
-        let res: Region[] = [...state.regions];
-        for (const value of newRegions) {
-          if (
-            !state.regions.find((element) => element.pubkey == value.pubkey)
-          ) {
-            res = [...res, value];
-          }
-        }
-        return res;
-      })(),
+      regions: new Set<Region>([...state.regions, ...newRegions]),
     })),
   profilesPush: (newProfilesSet) =>
     set((state) => ({
@@ -88,15 +78,7 @@ const useStore = create<State & Action>((set) => ({
     })),
   followsPush: (newFollows) =>
     set((state) => ({
-      follows: (() => {
-        let res: string[] = [...state.follows];
-        for (const value of newFollows) {
-          if (!state.follows.find((element) => element == value)) {
-            res = [...res, value];
-          }
-        }
-        return res;
-      })(),
+      follows: new Set<string>([...state.follows, ...newFollows]),
     })),
   daysRequiredsPush: (newDaysRequired, newPubkey) =>
     set((state) => ({
@@ -135,11 +117,11 @@ export class FetchData {
   }
 
   get follows() {
-    return this._follows;
+    return Array.from(this._follows);
   }
 
   set follows(follows: string[]) {
-    useStore.setState({ follows: follows });
+    useStore.setState({ follows: new Set<string>(follows) });
   }
 
   get profiles() {
@@ -151,7 +133,7 @@ export class FetchData {
   }
 
   get regions() {
-    return this._regions;
+    return Array.from(this._regions);
   }
 
   get outboxRelays() {
@@ -235,10 +217,10 @@ export class FetchData {
   }
 
   //kind-3取得
-  public async getFollows(pubkey: string) {
+  public async getFollows(pubkey: string, cache = true) {
     let newFollows = this._follows;
 
-    if (newFollows.length == 0 && this._kind3 != null) {
+    if (!cache || (newFollows.size == 0 && this._kind3 != null)) {
       const followsFilter: NDKFilter = {
         kinds: [3],
         authors: [pubkey],
@@ -248,23 +230,27 @@ export class FetchData {
         followsFilter
       );
 
-      this.kind3Push(followsEvent);
+      if (cache) {
+        this.kind3Push(followsEvent);
+      }
 
       if (!followsEvent) {
         return;
       }
 
-      newFollows = [];
+      newFollows = new Set<string>([]);
       for (const value of followsEvent.tags) {
         if (value[0] == "p") {
-          newFollows = [...newFollows, value[1]];
+          newFollows = new Set<string>([...newFollows, value[1]]);
         }
       }
 
-      this.followsPush(newFollows);
+      if (cache) {
+        this.followsPush(newFollows);
+      }
     }
 
-    return newFollows;
+    return Array.from(newFollows);
   }
 
   //kind-0取得
@@ -296,7 +282,9 @@ export class FetchData {
     let mustGetRegionPubkey: string[] = [];
 
     for (const pubkey of pubkeys) {
-      if (!this._regions.find((element) => element.pubkey == pubkey)) {
+      if (
+        !Array.from(this._regions).find((element) => element.pubkey == pubkey)
+      ) {
         mustGetRegionPubkey = [...mustGetRegionPubkey, pubkey];
       }
     }
@@ -305,9 +293,8 @@ export class FetchData {
 
     if (mustGetRegionPubkey.length > 0) {
       newRegions = await getRegions(mustGetRegionPubkey);
-      this.regionsPush(newRegions);
+      this.regionsPush(new Set<Region>(newRegions));
     }
-
     return [...this._regions, ...newRegions];
   }
 
