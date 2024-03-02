@@ -1,6 +1,7 @@
 "use client";
 import axios from "axios";
-import { CountryName, getCountryName } from "./getCountryName";
+import { CountryName, GeoJSONFeature, getCountryName } from "./getCountryName";
+import { createStore } from "zustand/vanilla";
 
 export interface Region {
   pubkey: string;
@@ -9,25 +10,52 @@ export interface Region {
   countryName: CountryName;
 }
 
-export async function getRegions(pubkeys: string[]) {
+interface State {
+  features: GeoJSONFeature[];
+  get: boolean;
+}
+
+const store = createStore<State>(() => ({
+  features: [],
+  get: true,
+}));
+
+const getFeature = async () => {
   const res = await axios.get("/geojson/mundo.geojson");
-  const geojsonData = res.data;
+  const features: GeoJSONFeature[] = res.data.features;
+  return features;
+};
+
+function sleep(milliSeconds: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => resolve(), milliSeconds);
+  });
+}
+
+export async function getRegions(pubkeys: string[]) {
+  const { features, get } = store.getState();
+
+  if (get) {
+    store.setState({ get: false });
+    store.setState({ features: await getFeature() });
+  }
+
+  if (features.length == 0) {
+    await sleep(1000);
+    return getRegions(pubkeys);
+  }
 
   const seedrandom = require("seedrandom");
   let regions: Region[] = [];
 
   for (const pubkey of pubkeys) {
     const rng = seedrandom(pubkey);
-    const region: Region = await (async () => {
+    const region: Region = (() => {
       while (true) {
         const longitude = rng() * 360 - 180; // 経度を-180から180の間でランダムに選ぶ
         const latitude = Math.acos(2 * rng() - 1) * (180 / Math.PI) - 90; // 緯度を-90から90の間でランダムに選ぶ
 
-        const countryName = await getCountryName(
-          latitude,
-          longitude,
-          geojsonData
-        );
+        const countryName = getCountryName(latitude, longitude, features);
 
         if (countryName) {
           return {

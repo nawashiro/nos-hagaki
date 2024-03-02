@@ -122,7 +122,6 @@ export const MultiLineBody = ({
       <p key={index}>
         {item.split(" ").map((fragment, fragmentIndex) => {
           if (urlPattern.test(fragment)) {
-            console.log(`url ${fragment}`);
             return (
               <Fragment key={fragmentIndex}>
                 <a

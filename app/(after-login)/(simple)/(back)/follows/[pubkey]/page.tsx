@@ -48,7 +48,6 @@ export default function Author({ params }: { params: { pubkey: string } }) {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-xl font-bold">フォロー一覧</h2>
       <div className="space-y-4">
         {follows.map((pubkey, index) => (
           <ProfileButton
