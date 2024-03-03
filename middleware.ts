@@ -2,7 +2,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getIp } from "./src/getIp";
-import { get } from "@vercel/edge-config";
 
 export const middleware = async (request: NextRequest) => {
   const ip = getIp(request);
@@ -21,8 +20,7 @@ export const middleware = async (request: NextRequest) => {
       }
     }
 
-    const isMaintenance = await get("isMaintenance");
-    if (isMaintenance) {
+    if (process.env.IS_MAINTENANCE == "true") {
       request.nextUrl.pathname = "/maintenance";
       return NextResponse.rewrite(request.nextUrl, { status: 503 });
     }
