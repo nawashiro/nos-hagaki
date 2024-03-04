@@ -7,6 +7,7 @@ import { getIp } from "@/src/getIp";
 import { redis } from "@/src/redisUtil";
 import { Ratelimit } from "@upstash/ratelimit";
 import { verify } from "hcaptcha";
+import { get } from "@vercel/edge-config";
 
 const prisma = new PrismaClient();
 
@@ -118,6 +119,13 @@ const submittedDataSet = async (res: SignedObject) => {
 };
 
 export async function POST(req: NextRequest) {
+  //メンテナンス
+  if (process.env.NODE_ENV === "production") {
+    if (await get("insertMaintenance")) {
+      return new Response(null, { status: 503 });
+    }
+  }
+
   console.log("request");
   const ip = getIp(req);
   const res: SignedObject = await req.json();

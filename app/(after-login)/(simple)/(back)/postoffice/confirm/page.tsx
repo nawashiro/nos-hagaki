@@ -169,6 +169,10 @@ export default function Confirm() {
         setErrorMessage(
           `${res.status} エラー\nレート制限がかかっているようね。残念だけど、1時間に6通のはがきしか送れないの。\nしばらく待ってからもう一度試してみなさい！`
         );
+      } else if (res.status == 503) {
+        setErrorMessage(
+          `${res.status} エラー\nメンテナンス中みたいね。\nしばらく待ってから、もう一度試してみなさい！`
+        );
       } else {
         setErrorMessage(`${res.status} エラー`);
       }
