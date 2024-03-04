@@ -2,6 +2,34 @@
 import axios from "axios";
 import { CountryName, GeoJSONFeature, getCountryName } from "./getCountryName";
 import { createStore } from "zustand/vanilla";
+import { del, get, set } from "idb-keyval";
+import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
+
+export const IdbStorage: StateStorage = {
+  getItem: async (name) => {
+    // Exit early on server
+    if (typeof indexedDB === "undefined") {
+      return null;
+    }
+    const value = await get(name);
+    console.log("load indexeddb called");
+    return value || null;
+  },
+  setItem: async (name, value) => {
+    // Exit early on server
+    if (typeof indexedDB === "undefined") {
+      return;
+    }
+    return set(name, value);
+  },
+  removeItem: async (name) => {
+    // Exit early on server
+    if (typeof indexedDB === "undefined") {
+      return;
+    }
+    await del(name);
+  },
+};
 
 export interface Region {
   pubkey: string;
@@ -15,10 +43,15 @@ interface State {
   get: boolean;
 }
 
-const store = createStore<State>(() => ({
-  features: [],
-  get: true,
-}));
+const store = createStore(
+  persist<State>(
+    () => ({
+      features: [],
+      get: true,
+    }),
+    { name: "features-storage", storage: createJSONStorage(() => IdbStorage) }
+  )
+);
 
 const getFeature = async () => {
   const res = await axios.get("/geojson/mundo.geojson");
