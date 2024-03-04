@@ -145,10 +145,18 @@ export default function Confirm() {
       id: id,
     };
 
+    //セッション関連情報を設定
+    const insertId = crypto.randomUUID();
+    sessionStorage.setItem("insertId", insertId);
+    sessionStorage.setItem("noteId", id);
+    sessionStorage.setItem("address", addressNpub);
+    sessionStorage.setItem("sendAt", date.toUTCString());
+
     const signedObject = {
       outbox: fetchdata.outboxRelays,
       event: signed,
       h_captcha_token: hCaptchaToken,
+      insertId: insertId,
     };
 
     const res = await fetch("/api/post-insert", {
@@ -170,7 +178,7 @@ export default function Confirm() {
     localStorage.removeItem("address-pubkey");
     localStorage.removeItem("draft-text");
 
-    router.push(`./complete/${signedObject.event.id}`);
+    router.push(`./complete/${insertId}`);
   };
 
   function handleVerificationSuccess(token: string) {

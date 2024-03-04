@@ -15,6 +15,7 @@ const hCaptchasecret = process.env.HCAPTCHA_SECRET ?? "expect secret";
 interface SignedObject {
   h_captcha_token: string;
   outbox: string[];
+  insertId: string;
   event: {
     kind: number;
     content: string;
@@ -110,14 +111,24 @@ const dbInsert = async (res: SignedObject, ip: string, outbox: Set<string>) => {
 };
 
 //投函済みページ用データインサート
-const submittedDataSet = async (res: SignedObject, ip: string) => {
-  const id = `event-${res.event.id}`;
-  await redis.hset(id, {
-    sendAt: res.event.created_at,
-    ip: ip,
-    address: res.event.tags[0][1],
-  });
+const submittedDataSet = async (res: SignedObject) => {
+  const id = `event-${res.insertId}`;
+  await redis.set(id, true);
   await redis.expire(id, 60 * 5);
+};
+
+//Tor出口IP取得
+const getTorIps = async () => {
+  const res = await fetch("https://check.torproject.org/torbulkexitlist");
+
+  if (!res.ok) {
+    throw new Error("Tor出口IPアドレス取得に失敗しました");
+  }
+
+  const resText = await res.text();
+  const exitIps = new Set<string>(resText.split("\n"));
+  await redis.sadd("tor-exit-ips", ...exitIps);
+  await redis.expire("tor-exit-ips", 30 * 60);
 };
 
 export async function POST(req: NextRequest) {
@@ -125,45 +136,69 @@ export async function POST(req: NextRequest) {
   const ip = getIp(req);
   const res: SignedObject = await req.json();
 
+  //hCaptcha
   try {
     const hCaptchaverify = await verify(hCaptchasecret, res.h_captcha_token);
 
     if (hCaptchaverify.success === true) {
-      console.log("success!", hCaptchaverify);
     } else {
-      return new Response("Unauthorized", { status: 401 });
+      return new Response(null, { status: 401 });
     }
   } catch (e) {
-    console.log(e);
-    return new Response("Internal server error", { status: 500 });
+    console.info(e);
+    return new Response(null, { status: 500 });
   }
 
+  //Tor出口IPリストを取得
+  if (!(await redis.exists("tor-exit-ips"))) {
+    try {
+      await getTorIps();
+      console.info("Tor出口IPリストを取得しました");
+    } catch (e) {
+      console.info("エラー: " + e);
+      return new Response(null, { status: 500 });
+    }
+  }
+
+  //Torをブロック
+  if ((await redis.smembers("tor-exit-ips")).find((element) => element == ip)) {
+    console.info(
+      "IPアドレスがTor出口IPリストに一致したため、アクセスを拒否しました。"
+    );
+    return new Response(null, { status: 403 });
+  }
+
+  //レート制限
   const successIp = (await ratelimit.limit(ip)).success;
   if (!successIp) {
-    return new Response("Too many requests", { status: 429 });
+    return new Response(null, { status: 429 });
   }
 
+  //推奨リレーリスト
   const outbox = new Set<string>(res.outbox);
 
+  //バリデーション
   try {
     validation(res, outbox);
   } catch (e) {
     console.log(e);
-    return new Response("Unprocessable Entity", { status: 422 });
+    return new Response(null, { status: 422 });
   }
 
+  //レート制限（公開鍵）
   const successPubkey = (await ratelimit.limit(res.event.pubkey)).success;
   if (!successPubkey) {
-    return new Response("Too many requests", { status: 429 });
+    return new Response(null, { status: 429 });
   }
 
+  //インサート
   try {
     await dbInsert(res, ip, outbox);
-    await submittedDataSet(res, ip);
+    await submittedDataSet(res);
   } catch (e) {
     console.log(e);
-    return new Response("Internal server error", { status: 500 });
+    return new Response(null, { status: 500 });
   }
 
-  return new Response("ok", { status: 200 });
+  return new Response(null, { status: 200 });
 }

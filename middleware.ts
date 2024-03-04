@@ -20,7 +20,7 @@ export const middleware = async (request: NextRequest) => {
       }
     }
 
-    if (process.env.IS_MAINTENANCE == "true") {
+    if (process.env.IS_MAINTENANCE == "true" && process.env.TEST_IP != ip) {
       request.nextUrl.pathname = "/maintenance";
       return NextResponse.rewrite(request.nextUrl, { status: 503 });
     }
