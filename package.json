@@ -20,6 +20,7 @@
     "@vercel/postgres": "^0.7.2",
     "axios": "^1.6.7",
     "hcaptcha": "^0.1.1",
+    "idb-keyval": "^6.2.1",
     "leaflet": "^1.9.4",
     "leaflet.geodesic": "^2.7.1",
     "next": "14.0.4",
