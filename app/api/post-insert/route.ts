@@ -117,20 +117,6 @@ const submittedDataSet = async (res: SignedObject) => {
   await redis.expire(id, 60 * 5);
 };
 
-//Tor出口IP取得
-const getTorIps = async () => {
-  const res = await fetch("https://check.torproject.org/torbulkexitlist");
-
-  if (!res.ok) {
-    throw new Error("Tor出口IPアドレス取得に失敗しました");
-  }
-
-  const resText = await res.text();
-  const exitIps = new Set<string>(resText.split("\n"));
-  await redis.sadd("tor-exit-ips", ...exitIps);
-  await redis.expire("tor-exit-ips", 30 * 60);
-};
-
 export async function POST(req: NextRequest) {
   console.log("request");
   const ip = getIp(req);
@@ -147,25 +133,6 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.info(e);
     return new Response(null, { status: 500 });
-  }
-
-  //Tor出口IPリストを取得
-  if (!(await redis.exists("tor-exit-ips"))) {
-    try {
-      await getTorIps();
-      console.info("Tor出口IPリストを取得しました");
-    } catch (e) {
-      console.info("エラー: " + e);
-      return new Response(null, { status: 500 });
-    }
-  }
-
-  //Torをブロック
-  if ((await redis.smembers("tor-exit-ips")).find((element) => element == ip)) {
-    console.info(
-      "IPアドレスがTor出口IPリストに一致したため、アクセスを拒否しました。"
-    );
-    return new Response(null, { status: 403 });
   }
 
   //レート制限
