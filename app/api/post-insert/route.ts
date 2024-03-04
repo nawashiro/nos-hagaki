@@ -64,14 +64,6 @@ const validation = (res: SignedObject, outbox: Set<string>) => {
     )
   )
     throw new Error("時刻が不正です");
-
-  const urlPattern = /^wss?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+/;
-
-  for (const value of outbox) {
-    if (!urlPattern.test(value)) {
-      throw Error("WebSocketサーバーurlが不正です");
-    }
-  }
 };
 
 //インサート
