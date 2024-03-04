@@ -15,6 +15,7 @@ const hCaptchasecret = process.env.HCAPTCHA_SECRET ?? "expect secret";
 interface SignedObject {
   h_captcha_token: string;
   outbox: string[];
+  insertId: string;
   event: {
     kind: number;
     content: string;
@@ -110,13 +111,9 @@ const dbInsert = async (res: SignedObject, ip: string, outbox: Set<string>) => {
 };
 
 //投函済みページ用データインサート
-const submittedDataSet = async (res: SignedObject, ip: string) => {
-  const id = `event-${res.event.id}`;
-  await redis.hset(id, {
-    sendAt: res.event.created_at,
-    ip: ip,
-    address: res.event.tags[0][1],
-  });
+const submittedDataSet = async (res: SignedObject) => {
+  const id = `event-${res.insertId}`;
+  await redis.set(id, true);
   await redis.expire(id, 60 * 5);
 };
 
@@ -159,7 +156,7 @@ export async function POST(req: NextRequest) {
 
   try {
     await dbInsert(res, ip, outbox);
-    await submittedDataSet(res, ip);
+    await submittedDataSet(res);
   } catch (e) {
     console.log(e);
     return new Response("Internal server error", { status: 500 });
