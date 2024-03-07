@@ -11,7 +11,11 @@ export default function Home() {
 
   useEffect(() => {
     if (localStorage.getItem("login")) {
-      router.push("/home");
+      fetchdata.getUser().then((user) => {
+        if (!!user.npub) {
+          router.push("/home");
+        }
+      });
     }
   }, []);
 

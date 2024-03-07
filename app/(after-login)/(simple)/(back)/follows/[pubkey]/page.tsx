@@ -1,14 +1,39 @@
 "use client";
 
+import MoreLoadButton from "@/components/MoreLoadButton";
 import ProfileButton from "@/components/profileButton";
 import { FetchData } from "@/src/fetchData";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Author({ params }: { params: { pubkey: string } }) {
+  const [moreLoadButtonValid, setMoreLoadButtonValid] = useState<boolean>(true);
   const fetchdata = new FetchData();
   const router = useRouter();
   const [follows, setFollows] = useState<string[]>([]);
+  const [loadedNumber, setLoadedNumber] = useState<number>(0);
+
+  //タイムライン取得
+  const getEvent = async (pubkeys: string[]) => {
+    let getPubkeys: string[];
+
+    if (pubkeys.length < loadedNumber + 10) {
+      getPubkeys = pubkeys.slice(loadedNumber);
+    } else {
+      getPubkeys = pubkeys.slice(loadedNumber, loadedNumber + 10);
+    }
+
+    setMoreLoadButtonValid(false);
+    //kind-0取得
+    await fetchdata.getProfile(getPubkeys);
+
+    //すみか情報を取得
+    await fetchdata.getRegionsWrapper(getPubkeys);
+
+    setMoreLoadButtonValid(true);
+
+    setLoadedNumber(loadedNumber + 10);
+  };
 
   useEffect(() => {
     const firstFetchdata = async () => {
@@ -37,26 +62,31 @@ export default function Author({ params }: { params: { pubkey: string } }) {
 
       setFollows(newFollows);
 
-      //kind-0取得
-      await fetchdata.getProfile(newFollows);
-
-      //すみか情報を取得
-      await fetchdata.getRegionsWrapper(newFollows);
+      await getEvent(newFollows);
     };
     firstFetchdata();
   }, []);
 
+  //さらに読み込むボタン押下時の処理
+  const getMoreEvent = () => {
+    getEvent(follows);
+  };
+
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        {follows.map((pubkey, index) => (
-          <ProfileButton
-            pubkey={pubkey}
-            key={index}
-            value={pubkey}
-            onClick={() => router.push(`/author/${pubkey}`)}
-          />
-        ))}
+        {follows.map(
+          (pubkey, index) =>
+            fetchdata.regions.find((e) => e.pubkey == pubkey) && (
+              <ProfileButton
+                pubkey={pubkey}
+                key={index}
+                value={pubkey}
+                onClick={() => router.push(`/author/${pubkey}`)}
+              />
+            )
+        )}
+        <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />
       </div>
     </div>
   );
