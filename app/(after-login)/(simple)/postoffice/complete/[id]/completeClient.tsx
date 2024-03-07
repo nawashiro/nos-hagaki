@@ -63,7 +63,7 @@ export default function CompleteClient() {
       setMessageTextContent(
         `nostr:${nip19.npubEncode(
           address
-        )} 樣宛にはがきを発送しました。\nお届け予定日 ${dateString}\nnostr:${nip19.noteEncode(
+        )} 様宛にはがきを発送しました。\nお届け予定日 ${dateString}\nnostr:${nip19.noteEncode(
           noteId
         )}`
       );
