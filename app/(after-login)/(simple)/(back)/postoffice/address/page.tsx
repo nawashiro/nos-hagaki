@@ -19,8 +19,10 @@ export default function Address() {
 
     if (pubkeys.length < loadedNumber + 10) {
       getPubkeys = pubkeys.slice(loadedNumber);
+      setLoadedNumber(pubkeys.length);
     } else {
       getPubkeys = pubkeys.slice(loadedNumber, loadedNumber + 10);
+      setLoadedNumber(loadedNumber + 10);
     }
 
     setMoreLoadButtonValid(false);
@@ -31,8 +33,6 @@ export default function Address() {
     await fetchdata.getRegionsWrapper(getPubkeys);
 
     setMoreLoadButtonValid(true);
-
-    setLoadedNumber(loadedNumber + 10);
   };
 
   useEffect(() => {
@@ -80,17 +80,14 @@ export default function Address() {
         …べっ、別にあんたが誰をフォローしてるかなんて興味ないんだからっ！
       </p>
       <div className="space-y-4">
-        {follows.map(
-          (pubkey, index) =>
-            fetchdata.regions.find((e) => e.pubkey == pubkey) && (
-              <ProfileButton
-                pubkey={pubkey}
-                key={index}
-                value={pubkey}
-                onClick={(e) => addressSelect(e.currentTarget.value)}
-              />
-            )
-        )}
+        {follows.slice(0, loadedNumber).map((pubkey, index) => (
+          <ProfileButton
+            pubkey={pubkey}
+            key={index}
+            value={pubkey}
+            onClick={(e) => addressSelect(e.currentTarget.value)}
+          />
+        ))}
         <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />
       </div>
     </div>

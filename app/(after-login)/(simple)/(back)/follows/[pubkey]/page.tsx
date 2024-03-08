@@ -19,8 +19,10 @@ export default function Author({ params }: { params: { pubkey: string } }) {
 
     if (pubkeys.length < loadedNumber + 10) {
       getPubkeys = pubkeys.slice(loadedNumber);
+      setLoadedNumber(pubkeys.length);
     } else {
       getPubkeys = pubkeys.slice(loadedNumber, loadedNumber + 10);
+      setLoadedNumber(loadedNumber + 10);
     }
 
     setMoreLoadButtonValid(false);
@@ -31,8 +33,6 @@ export default function Author({ params }: { params: { pubkey: string } }) {
     await fetchdata.getRegionsWrapper(getPubkeys);
 
     setMoreLoadButtonValid(true);
-
-    setLoadedNumber(loadedNumber + 10);
   };
 
   useEffect(() => {
@@ -75,17 +75,14 @@ export default function Author({ params }: { params: { pubkey: string } }) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        {follows.map(
-          (pubkey, index) =>
-            fetchdata.regions.find((e) => e.pubkey == pubkey) && (
-              <ProfileButton
-                pubkey={pubkey}
-                key={index}
-                value={pubkey}
-                onClick={() => router.push(`/author/${pubkey}`)}
-              />
-            )
-        )}
+        {follows.slice(0, loadedNumber).map((pubkey, index) => (
+          <ProfileButton
+            pubkey={pubkey}
+            key={index}
+            value={pubkey}
+            onClick={() => router.push(`/author/${pubkey}`)}
+          />
+        ))}
         <MoreLoadButton valid={moreLoadButtonValid} onClick={getMoreEvent} />
       </div>
     </div>
